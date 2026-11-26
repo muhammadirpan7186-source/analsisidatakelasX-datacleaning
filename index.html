@@ -1,0 +1,3080 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MPI Informatika — Pembersihan Data (Data Cleaning) | SMA Kelas X</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+
+  <!-- Bootstrap 5.3 CSS via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+
+  <!-- html2canvas & jsPDF for A5 Certificate PDF Export -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <style>
+    /* =====================================================================
+       DESIGN TOKENS & THEME VARIABLES (CANVA-INSPIRED DEEP LEARNING MPI)
+       ===================================================================== */
+    :root {
+      --bg-cream: #EFE8DD;
+      --bg-cream-soft: #F7F3EC;
+      --surface-card: #FFFFFF;
+      --surface-elevated: #FAF7F2;
+      --accent-purple: #8B639B;
+      --accent-purple-soft: #EFE6F4;
+      --accent-green: #2E8B57;
+      --accent-green-soft: #E3F5EB;
+      --accent-navy: #303841;
+      --accent-orange: #FF5722;
+      --accent-orange-soft: #FFEAE3;
+      --text-main: #303841;
+      --text-muted: #5C6672;
+      --border-soft: rgba(48, 56, 65, 0.12);
+      --shadow-card: 0 12px 30px rgba(48, 56, 65, 0.08);
+      --shadow-hover: 0 18px 38px rgba(48, 56, 65, 0.14);
+      --input-bg: #FFFFFF;
+      --table-header: #303841;
+      --table-header-text: #FFFFFF;
+      --row-hover: rgba(139, 99, 155, 0.06);
+    }
+
+    [data-theme="dark"] {
+      --bg-cream: #171A21;
+      --bg-cream-soft: #1E222B;
+      --surface-card: #242934;
+      --surface-elevated: #2C3240;
+      --accent-purple: #B388C7;
+      --accent-purple-soft: rgba(179, 136, 199, 0.16);
+      --accent-green: #4CC382;
+      --accent-green-soft: rgba(76, 195, 130, 0.16);
+      --accent-navy: #E8EDF2;
+      --accent-orange: #FF6E40;
+      --accent-orange-soft: rgba(255, 110, 64, 0.16);
+      --text-main: #F1F4F8;
+      --text-muted: #AEB7C4;
+      --border-soft: rgba(255, 255, 255, 0.11);
+      --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.35);
+      --shadow-hover: 0 18px 40px rgba(0, 0, 0, 0.5);
+      --input-bg: #1B1F27;
+      --table-header: #13161C;
+      --table-header-text: #F1F4F8;
+      --row-hover: rgba(179, 136, 199, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-cream);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4, h5, .font-display {
+      font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: -0.02em;
+    }
+
+    /* =====================================================================
+       HEADER, PROGRESS BAR & NAVIGATION CONTROLS
+       ===================================================================== */
+    .mpi-header {
+      background: var(--surface-card);
+      border-bottom: 1px solid var(--border-soft);
+      position: sticky;
+      top: 0;
+      z-index: 1030;
+      box-shadow: 0 4px 20px rgba(48, 56, 65, 0.05);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .brand-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent-orange), var(--accent-purple));
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      box-shadow: 0 6px 16px rgba(255, 87, 34, 0.28);
+      flex-shrink: 0;
+    }
+
+    .progress-strip {
+      background: var(--bg-cream-soft);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 0.55rem 0;
+    }
+
+    .mpi-progress {
+      height: 10px;
+      border-radius: 999px;
+      background-color: rgba(139, 99, 155, 0.18);
+      overflow: hidden;
+    }
+
+    .mpi-progress-bar {
+      background: linear-gradient(90deg, var(--accent-purple), var(--accent-orange), var(--accent-green));
+      border-radius: 999px;
+      transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* =====================================================================
+       CANVA-LIKE CARDS, ANIMATIONS & BUTTONS
+       ===================================================================== */
+    .canva-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-soft);
+      border-radius: 24px;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, background-color 0.3s ease;
+    }
+
+    .menu-card {
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      border-radius: 24px;
+      padding: 1.5rem;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 2px solid transparent;
+    }
+
+    .menu-card::before {
+      content: "";
+      position: absolute;
+      top: -36px;
+      right: -36px;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      opacity: 0.14;
+      transition: transform 0.35s ease;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--accent-purple);
+    }
+
+    .menu-card:hover::before {
+      transform: scale(1.28);
+    }
+
+    .menu-card.card-apersepsi::before { background: var(--accent-orange); }
+    .menu-card.card-kasus::before { background: var(--accent-purple); }
+    .menu-card.card-asesmen::before { background: var(--accent-green); }
+    .menu-card.card-refleksi::before { background: #2196F3; }
+    .menu-card.card-sertifikat::before { background: var(--accent-orange); }
+
+    .btn-canva {
+      border-radius: 14px;
+      font-weight: 700;
+      padding: 0.65rem 1.25rem;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      border: none;
+    }
+
+    .btn-canva:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(48, 56, 65, 0.16);
+      filter: brightness(1.03);
+    }
+
+    .btn-canva:active:not(:disabled) {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .btn-orange {
+      background: linear-gradient(135deg, #FF5722, #FF784E);
+      color: #fff;
+    }
+
+    .btn-purple {
+      background: linear-gradient(135deg, #8B639B, #6E497E);
+      color: #fff;
+    }
+
+    .btn-navy {
+      background: var(--accent-navy);
+      color: var(--surface-card);
+    }
+
+    .btn-green {
+      background: linear-gradient(135deg, #2E8B57, #3DA66B);
+      color: #fff;
+    }
+
+    .btn-soft {
+      background: var(--surface-elevated);
+      color: var(--text-main);
+      border: 1px solid var(--border-soft);
+    }
+
+    /* Page transition animation */
+    .page-section {
+      display: none;
+      animation: pageFadeIn 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .page-section.active {
+      display: block;
+    }
+
+    @keyframes pageFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(125deg, #303841 0%, #4A3754 58%, #8B639B 100%);
+      color: #FFFFFF;
+      border-radius: 28px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+
+    .hero-banner::after {
+      content: "";
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 87, 34, 0.35), transparent 70%);
+      bottom: -70px;
+      right: -50px;
+      pointer-events: none;
+    }
+
+    /* Pills & Badges */
+    .pill-purple {
+      background: var(--accent-purple-soft);
+      color: var(--accent-purple);
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.82rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .pill-orange {
+      background: var(--accent-orange-soft);
+      color: var(--accent-orange);
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.82rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .pill-green {
+      background: var(--accent-green-soft);
+      color: var(--accent-green);
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.82rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    /* Form Controls */
+    .form-control, .form-select {
+      background-color: var(--input-bg);
+      color: var(--text-main);
+      border: 1.5px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 0.55rem 0.85rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+      background-color: var(--input-bg);
+      color: var(--text-main);
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 0.22rem rgba(139, 99, 155, 0.2);
+    }
+
+    .form-control::placeholder {
+      color: var(--text-muted);
+      opacity: 0.78;
+    }
+
+    /* =====================================================================
+       DATA CLEANING WORKBENCH TABLE
+       ===================================================================== */
+    .cleaning-table-wrap {
+      border-radius: 18px;
+      overflow-x: auto;
+      border: 1px solid var(--border-soft);
+      background: var(--surface-card);
+    }
+
+    .cleaning-table {
+      margin-bottom: 0;
+      color: var(--text-main);
+      min-width: 780px;
+    }
+
+    .cleaning-table thead th {
+      background-color: var(--table-header);
+      color: var(--table-header-text);
+      font-weight: 700;
+      font-size: 0.83rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.85rem 0.75rem;
+      border: none;
+      white-space: nowrap;
+    }
+
+    .cleaning-table tbody td {
+      padding: 0.7rem 0.75rem;
+      vertical-align: middle;
+      border-color: var(--border-soft);
+      font-size: 0.9rem;
+    }
+
+    .cleaning-table tbody tr:hover {
+      background-color: var(--row-hover);
+    }
+
+    .row-verified {
+      background-color: rgba(46, 139, 87, 0.08) !important;
+    }
+
+    .row-flagged {
+      background-color: rgba(255, 87, 34, 0.07) !important;
+    }
+
+    /* =====================================================================
+       BADGE COLLECTION CARDS
+       ===================================================================== */
+    .badge-item {
+      border-radius: 18px;
+      padding: 1rem;
+      border: 1.5px dashed var(--border-soft);
+      background: var(--surface-elevated);
+      transition: transform 0.25s ease, border-color 0.25s ease, opacity 0.25s ease;
+    }
+
+    .badge-item.unlocked {
+      border-style: solid;
+      border-color: var(--accent-purple);
+      background: var(--surface-card);
+      box-shadow: 0 8px 20px rgba(139, 99, 155, 0.12);
+    }
+
+    .badge-item.locked {
+      opacity: 0.58;
+    }
+
+    .badge-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      flex-shrink: 0;
+    }
+
+    /* =====================================================================
+       A5 CERTIFICATE STYLING (SCREEN + PDF + PRINT)
+       ===================================================================== */
+    .certificate-stage {
+      background: var(--bg-cream-soft);
+      border: 1px solid var(--border-soft);
+      border-radius: 24px;
+      padding: 1.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: auto;
+    }
+
+    /* Exact A5 Landscape proportion: 210mm x 148mm (approx 794px x 559px at 96dpi) */
+    .cert-a5-sheet {
+      width: 794px;
+      height: 559px;
+      min-width: 794px;
+      background: linear-gradient(145deg, #FFFDF9 0%, #FBF6FF 55%, #FFF5F0 100%);
+      color: #303841;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      padding: 24px;
+      box-shadow: 0 20px 45px rgba(48, 56, 65, 0.18);
+      border: 2px solid rgba(139, 99, 155, 0.28);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .cert-frame-inner {
+      border: 2.5px solid #FF5722;
+      outline: 2px solid #8B639B;
+      outline-offset: 5px;
+      border-radius: 8px;
+      height: 100%;
+      padding: 18px 26px;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    .cert-corner-blob-tl {
+      position: absolute;
+      top: -48px;
+      left: -48px;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 87, 34, 0.25), rgba(255, 87, 34, 0.04));
+      z-index: 1;
+    }
+
+    .cert-corner-blob-tr {
+      position: absolute;
+      top: -55px;
+      right: -55px;
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(139, 99, 155, 0.28), rgba(139, 99, 155, 0.04));
+      z-index: 1;
+    }
+
+    .cert-corner-blob-bl {
+      position: absolute;
+      bottom: -60px;
+      left: -45px;
+      width: 165px;
+      height: 165px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(48, 56, 65, 0.18), rgba(48, 56, 65, 0.03));
+      z-index: 1;
+    }
+
+    .cert-corner-blob-br {
+      position: absolute;
+      bottom: -50px;
+      right: -50px;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 87, 34, 0.22), rgba(139, 99, 155, 0.08));
+      z-index: 1;
+    }
+
+    .cert-school-banner {
+      background: linear-gradient(90deg, #303841, #5E436B, #FF5722);
+      color: #FFFFFF;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: inline-block;
+    }
+
+    .cert-student-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #303841;
+      border-bottom: 2px dashed #8B639B;
+      display: inline-block;
+      padding: 0 18px 2px 18px;
+      margin: 4px 0;
+    }
+
+    /* Confetti Canvas Overlay */
+    #confettiCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2000;
+      display: none;
+    }
+
+    /* Toast / Message Banner */
+    .mpi-toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1080;
+      max-width: 380px;
+    }
+
+    /* Footer */
+    .mpi-footer {
+      background: var(--surface-card);
+      border-top: 1px solid var(--border-soft);
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+
+    /* =====================================================================
+       PRINT STYLES FOR A5 CERTIFICATE
+       ===================================================================== */
+    @page {
+      size: A5 landscape;
+      margin: 0;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #certificatePrintRoot,
+      #certificatePrintRoot * {
+        visibility: visible !important;
+      }
+      #certificatePrintRoot {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 210mm !important;
+        height: 148mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #FFFDF9 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      .cert-a5-sheet {
+        width: 210mm !important;
+        height: 148mm !important;
+        min-width: 210mm !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+
+    /* Responsive tweaks for smaller screens on certificate preview */
+    @media (max-width: 850px) {
+      .certificate-stage {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Confetti Canvas for Score >= 90 -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Toast Notification Container (No alert() used anywhere) -->
+  <div class="mpi-toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- =====================================================================
+       HEADER UTAMA & NAVIGASI CEPAT
+       ===================================================================== -->
+  <header class="mpi-header py-2.5">
+    <div class="container-xxl">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 py-1">
+        <!-- Brand & Topic -->
+        <div class="d-flex align-items-center gap-3">
+          <div class="brand-badge" role="button" onclick="navigateTo('home')" title="Kembali ke Beranda">
+            <i class="bi bi-funnel-fill"></i>
+          </div>
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="fw-bold font-display fs-6 fs-md-5" style="color: var(--text-main);">
+                Data Cleaning Studio
+              </span>
+              <span class="pill-purple d-none d-sm-inline-flex">SMA Kelas X</span>
+            </div>
+            <div class="small" style="color: var(--text-muted);">
+              Informatika • Analisis Data: Pembersihan Data
+            </div>
+          </div>
+        </div>
+
+        <!-- Global Action Controls -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <button type="button" class="btn btn-canva btn-soft btn-sm" onclick="navigateTo('home')" title="Beranda / Menu Utama">
+            <i class="bi bi-house-door-fill" style="color: var(--accent-orange);"></i>
+            <span class="d-none d-md-inline">Home</span>
+          </button>
+
+          <button type="button" class="btn btn-canva btn-soft btn-sm" id="btnMusicToggle" onclick="toggleBackgroundMusic()" title="Musik Latar ON/OFF">
+            <i class="bi bi-volume-mute-fill" id="musicIcon"></i>
+            <span class="d-none d-lg-inline" id="musicLabel">Musik: OFF</span>
+          </button>
+
+          <button type="button" class="btn btn-canva btn-soft btn-sm" id="btnThemeToggle" onclick="toggleTheme()" title="Mode Terang / Gelap">
+            <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+            <span class="d-none d-lg-inline" id="themeLabel">Mode Gelap</span>
+          </button>
+
+          <button type="button" class="btn btn-canva btn-soft btn-sm" onclick="downloadLearningSummary()" title="Download Hasil Belajar">
+            <i class="bi bi-download" style="color: var(--accent-green);"></i>
+            <span class="d-none d-xl-inline">Unduh Rekap</span>
+          </button>
+
+          <button type="button" class="btn btn-canva btn-soft btn-sm" data-bs-toggle="modal" data-bs-target="#resetModal" title="Ulangi Materi / Reset Progress">
+            <i class="bi bi-arrow-counterclockwise text-danger"></i>
+            <span class="d-none d-xl-inline">Reset</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Progress Strip & Prev/Next Stepper -->
+  <div class="progress-strip">
+    <div class="container-xxl">
+      <div class="row align-items-center g-2">
+        <div class="col-12 col-md-6">
+          <div class="d-flex justify-content-between align-items-center small mb-1">
+            <span class="fw-semibold">
+              <i class="bi bi-graph-up-arrow me-1" style="color: var(--accent-purple);"></i>
+              Progres Belajar Mendalam: <strong id="progressPercentText" style="color: var(--accent-orange);">0%</strong>
+            </span>
+            <span style="color: var(--text-muted);" id="progressStepLabel">Halaman: Beranda</span>
+          </div>
+          <div class="progress mpi-progress">
+            <div class="progress-bar mpi-progress-bar" id="progressBarFill" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+        <div class="col-12 col-md-6 d-flex justify-content-md-end align-items-center gap-2">
+          <button type="button" class="btn btn-canva btn-soft btn-sm py-1 px-3" id="btnPrevPage" onclick="stepPage(-1)">
+            <i class="bi bi-chevron-left"></i> Sebelumnya
+          </button>
+          <span class="badge rounded-pill px-3 py-2" style="background: var(--accent-purple-soft); color: var(--accent-purple);" id="pageIndicatorPill">
+            1 / 6
+          </span>
+          <button type="button" class="btn btn-canva btn-purple btn-sm py-1 px-3" id="btnNextPage" onclick="stepPage(1)">
+            Berikutnya <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MAIN CONTENT AREA
+       ===================================================================== -->
+  <main class="container-xxl my-4 flex-grow-1">
+
+    <!-- -------------------------------------------------------------------
+         1. BERANDA / MENU UTAMA
+         ------------------------------------------------------------------- -->
+    <section id="page-home" class="page-section active">
+      <div class="hero-banner mb-4">
+        <div class="row align-items-center g-4">
+          <div class="col-lg-8">
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <span class="badge rounded-pill px-3 py-2" style="background: rgba(255,87,34,0.28); color: #FFD2C2; border: 1px solid rgba(255,255,255,0.2);">
+                <i class="bi bi-sparkles me-1"></i> Pembelajaran Mendalam • Berkesadaran, Bermakna, Menggembirakan
+              </span>
+              <span class="badge rounded-pill px-3 py-2" style="background: rgba(139,99,155,0.35); color: #F4E6FA; border: 1px solid rgba(255,255,255,0.2);">
+                <i class="bi bi-laptop me-1"></i> Siap PID, Laptop, Tablet &amp; HP
+              </span>
+            </div>
+            <h1 class="display-6 fw-bold mb-2">
+              Misi Menyelamatkan Data: <span style="color: #FF8A65;">Pembersihan Data (Data Cleaning)</span>
+            </h1>
+            <p class="lead mb-3" style="color: rgba(255,255,255,0.88); font-size: 1.02rem;">
+              Halo, Detektif Data SMA Kelas X! Pernahkah hasil rekap lomba, kas kelas, atau survei sekolah kacau gara-gara data ganda, typo, atau angka yang tidak masuk akal? Mari berlatih membersihkannya langsung lewat studi kasus nyata!
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="btn btn-canva btn-orange" onclick="navigateTo('apersepsi')">
+                <i class="bi bi-play-circle-fill"></i> Mulai dari Apersepsi
+              </button>
+              <button type="button" class="btn btn-canva" style="background: rgba(255,255,255,0.14); color: #fff; border: 1px solid rgba(255,255,255,0.28);" onclick="navigateTo('kasus')">
+                <i class="bi bi-table"></i> Langsung Olah Studi Kasus
+              </button>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.16);">
+              <div class="small text-uppercase fw-bold mb-2" style="color: #FFD2C2; letter-spacing: 0.06em;">
+                <i class="bi bi-person-badge me-1"></i> Identitas Peserta Belajar
+              </div>
+              <div class="mb-2">
+                <label class="form-label small text-white-50 mb-1">Nama Lengkap Peserta Didik</label>
+                <input type="text" id="homeStudentName" class="form-control form-control-sm" placeholder="Ketik namamu di sini..." oninput="syncStudentIdentity(this.value, null)" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label small text-white-50 mb-1">Kelas (SMA Kelas X)</label>
+                <input type="text" id="homeStudentClass" class="form-control form-control-sm" placeholder="Contoh: X-A / X MIPA 1" oninput="syncStudentIdentity(null, this.value)" />
+              </div>
+              <div class="d-flex justify-content-between align-items-center small pt-2 border-top border-white border-opacity-10">
+                <span>Skor Studi Kasus: <strong id="homeCaseScore">0</strong></span>
+                <span>Skor Asesmen: <strong id="homeQuizScore">Belum</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 Interactive Menu Cards -->
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <h2 class="h4 fw-bold mb-0">Menu Utama Pembelajaran</h2>
+          <p class="small mb-0" style="color: var(--text-muted);">Pilih kartu aktivitas di bawah atau gunakan tombol Berikutnya/Sebelumnya.</p>
+        </div>
+        <span class="pill-green"><i class="bi bi-check2-circle"></i> 5 Tahap Interaktif</span>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <!-- Card 1: Apersepsi -->
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="canva-card menu-card card-apersepsi" onclick="navigateTo('apersepsi')">
+            <div>
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <span class="badge-icon-box" style="background: var(--accent-orange-soft); color: var(--accent-orange);">
+                  <i class="bi bi-pin-angle-fill"></i>
+                </span>
+                <span class="badge rounded-pill" id="status-apersepsi" style="background: var(--surface-elevated); color: var(--text-muted); border: 1px solid var(--border-soft);">
+                  Belum Dikunjungi
+                </span>
+              </div>
+              <h3 class="h5 fw-bold">1. Apersepsi</h3>
+              <p class="small mb-3" style="color: var(--text-muted);">
+                Amankan rasa penasarannya dulu! Lihat ilustrasi data berantakan, video pemantik, dan jawab pertanyaan pemantik seputar kehidupan sehari-hari.
+              </p>
+            </div>
+            <div class="d-flex align-items-center justify-content-between pt-2 border-top" style="border-color: var(--border-soft) !important;">
+              <span class="small fw-bold" style="color: var(--accent-orange);">Buka Apersepsi</span>
+              <i class="bi bi-arrow-right-circle-fill fs-5" style="color: var(--accent-orange);"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Studi Kasus Kontekstual -->
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="canva-card menu-card card-kasus" onclick="navigateTo('kasus')">
+            <div>
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <span class="badge-icon-box" style="background: var(--accent-purple-soft); color: var(--accent-purple);">
+                  <i class="bi bi-collection-play-fill"></i>
+                </span>
+                <span class="badge rounded-pill" id="status-kasus" style="background: var(--surface-elevated); color: var(--text-muted); border: 1px solid var(--border-soft);">
+                  0/3 Kasus Selesai
+                </span>
+              </div>
+              <h3 class="h5 fw-bold">2. Studi Kasus Kontekstual</h3>
+              <p class="small mb-3" style="color: var(--text-muted);">
+                3 pilihan kasus nyata (Lomba &amp; Ekskul, Kantin &amp; Koperasi, Survei Gadget Siswa). Bersihkan tabel langsung, dapat skor otomatis, &amp; unduh Excel!
+              </p>
+            </div>
+            <div class="d-flex align-items-center justify-content-between pt-2 border-top" style="border-color: var(--border-soft) !important;">
+              <span class="small fw-bold" style="color: var(--accent-purple);">Mulai Praktik Tabel</span>
+              <i class="bi bi-arrow-right-circle-fill fs-5" style="color: var(--accent-purple);"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Asesmen Akhir -->
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="canva-card menu-card card-asesmen" onclick="navigateTo('asesmen')">
+            <div>
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <span class="badge-icon-box" style="background: var(--accent-green-soft); color: var(--accent-green);">
+                  <i class="bi bi-patch-check-fill"></i>
+                </span>
+                <span class="badge rounded-pill" id="status-asesmen" style="background: var(--surface-elevated); color: var(--text-muted); border: 1px solid var(--border-soft);">
+                  10 Soal • Timer
+                </span>
+              </div>
+              <h3 class="h5 fw-bold">3. Asesmen Akhir</h3>
+              <p class="small mb-3" style="color: var(--text-muted);">
+                Uji ketajaman analisis data lewat 10 soal menantang dengan timer, nilai &amp; predikat otomatis, serta efek konfeti jika meraih nilai &ge; 90!
+              </p>
+            </div>
+            <div class="d-flex align-items-center justify-content-between pt-2 border-top" style="border-color: var(--border-soft) !important;">
+              <span class="small fw-bold" style="color: var(--accent-green);">Kerjakan Asesmen</span>
+              <i class="bi bi-arrow-right-circle-fill fs-5" style="color: var(--accent-green);"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Refleksi -->
+        <div class="col-12 col-md-6 col-xl-6">
+          <div class="canva-card menu-card card-refleksi" onclick="navigateTo('refleksi')">
+            <div>
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <span class="badge-icon-box" style="background: rgba(33, 150, 243, 0.14); color: #2196F3;">
+                  <i class="bi bi-journal-bookmark-fill"></i>
+                </span>
+                <span class="badge rounded-pill" id="status-refleksi" style="background: var(--surface-elevated); color: var(--text-muted); border: 1px solid var(--border-soft);">
+                  Belum Diisi
+                </span>
+              </div>
+              <h3 class="h5 fw-bold">4. Refleksi Pembelajaran</h3>
+              <p class="small mb-3" style="color: var(--text-muted);">
+                Ruang jeda berkesadaran (mindful learning) untuk menuliskan pemahamanmu, hal paling menarik, bagian yang masih membingungkan, dan rencana aksimu.
+              </p>
+            </div>
+            <div class="d-flex align-items-center justify-content-between pt-2 border-top" style="border-color: var(--border-soft) !important;">
+              <span class="small fw-bold" style="color: #2196F3;">Tulis Refleksi</span>
+              <i class="bi bi-arrow-right-circle-fill fs-5" style="color: #2196F3;"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Sertifikat Hasil Belajar -->
+        <div class="col-12 col-md-12 col-xl-6">
+          <div class="canva-card menu-card card-sertifikat" onclick="navigateTo('sertifikat')">
+            <div>
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <span class="badge-icon-box" style="background: var(--accent-orange-soft); color: var(--accent-orange);">
+                  <i class="bi bi-award-fill"></i>
+                </span>
+                <span class="badge rounded-pill" id="status-sertifikat" style="background: var(--surface-elevated); color: var(--text-muted); border: 1px solid var(--border-soft);">
+                  Format A5 Siap Unduh
+                </span>
+              </div>
+              <h3 class="h5 fw-bold">5. Sertifikat Hasil Belajar</h3>
+              <p class="small mb-3" style="color: var(--text-muted);">
+                Sertifikat otomatis ukuran A5 resmi <strong>SMA KHALIFAH BOARDING SCHOOL</strong> lengkap dengan nilai akhir, tanggal belajar, &amp; pengesahan guru. Unduh PDF atau cetak langsung!
+              </p>
+            </div>
+            <div class="d-flex align-items-center justify-content-between pt-2 border-top" style="border-color: var(--border-soft) !important;">
+              <span class="small fw-bold" style="color: var(--accent-orange);">Lihat &amp; Cetak Sertifikat</span>
+              <i class="bi bi-arrow-right-circle-fill fs-5" style="color: var(--accent-orange);"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Digital Badges Showcase -->
+      <div class="canva-card p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h3 class="h5 fw-bold mb-1">
+              <i class="bi bi-trophy-fill me-2" style="color: var(--accent-orange);"></i>
+              Koleksi Badge / Penghargaan Digital
+            </h3>
+            <p class="small mb-0" style="color: var(--text-muted);">
+              Kumpulkan badge saat menjelajah apersepsi, membersihkan data studi kasus, menyelesaikan asesmen, dan menulis refleksi.
+            </p>
+          </div>
+          <span class="pill-purple" id="badgeCountPill">0 / 5 Badge Terbuka</span>
+        </div>
+        <div class="row g-3" id="badgesGrid"></div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         2. APERSEPSI (MEMBANGKITKAN RASA INGIN TAHU, TANPA TEORI LANGSUNG)
+         ------------------------------------------------------------------- -->
+    <section id="page-apersepsi" class="page-section">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+          <span class="pill-orange mb-2"><i class="bi bi-pin-angle-fill"></i> Tahap 1 • Apersepsi</span>
+          <h2 class="h3 fw-bold mb-0">Mengapa Data di Sekitar Kita Sering Bikin Pusing?</h2>
+        </div>
+        <button type="button" class="btn btn-canva btn-purple btn-sm" onclick="navigateTo('kasus')">
+          Lanjut ke Studi Kasus <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+
+      <div class="row g-4">
+        <!-- Gambar Pemantik & Ilustrasi Interaktif -->
+        <div class="col-lg-6">
+          <div class="canva-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="fw-bold small text-uppercase" style="color: var(--accent-purple); letter-spacing: 0.05em;">
+                <i class="bi bi-image-fill me-1"></i> Gambar Pemantik Situasi Nyata
+              </span>
+              <span class="badge rounded-pill" style="background: var(--accent-orange-soft); color: var(--accent-orange);">Klik Hotspot</span>
+            </div>
+
+            <!-- Rich SVG Illustration with Interactive Hotspots -->
+            <div class="position-relative rounded-4 overflow-hidden border mb-3" style="border-color: var(--border-soft) !important; background: var(--surface-elevated);">
+              <svg viewBox="0 0 640 360" class="w-100 h-auto d-block" role="img" aria-label="Ilustrasi data pendaftaran lomba dan kas kelas yang berantakan">
+                <defs>
+                  <linearGradient id="skyGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#EFE8DD"/>
+                    <stop offset="100%" stop-color="#E5D8F0"/>
+                  </linearGradient>
+                </defs>
+                <rect width="640" height="360" fill="url(#skyGrad)"/>
+                <!-- Decorative school desk -->
+                <rect x="0" y="295" width="640" height="65" fill="#303841"/>
+                <rect x="0" y="290" width="640" height="8" fill="#8B639B"/>
+
+                <!-- Messy spreadsheet window -->
+                <rect x="42" y="34" width="365" height="232" rx="14" fill="#FFFFFF" stroke="#303841" stroke-width="2.5"/>
+                <rect x="42" y="34" width="365" height="34" rx="14" fill="#303841"/>
+                <circle cx="64" cy="51" r="6" fill="#FF5722"/>
+                <circle cx="84" cy="51" r="6" fill="#FFC107"/>
+                <circle cx="104" cy="51" r="6" fill="#4CAF50"/>
+                <text x="126" y="55" fill="#FFFFFF" font-size="12" font-family="Plus Jakarta Sans, sans-serif" font-weight="700">rekap_lomba_futsal_FINAL_v3_REVISI.xlsx</text>
+
+                <!-- Table rows inside illustration -->
+                <line x1="42" y1="102" x2="407" y2="102" stroke="#CBD5E1" stroke-width="1.5"/>
+                <line x1="42" y1="138" x2="407" y2="138" stroke="#CBD5E1" stroke-width="1.5"/>
+                <line x1="42" y1="174" x2="407" y2="174" stroke="#CBD5E1" stroke-width="1.5"/>
+                <line x1="42" y1="210" x2="407" y2="210" stroke="#CBD5E1" stroke-width="1.5"/>
+
+                <text x="58" y="90" fill="#303841" font-size="12" font-weight="700">1. Raka Pratama | X-1 | Umur: 16 | Bayar: 25000</text>
+                <text x="58" y="126" fill="#FF5722" font-size="12" font-weight="700">2. raka pratama  | x1  | Umur: 16 | Bayar: 25000</text>
+                <text x="58" y="162" fill="#8B639B" font-size="12" font-weight="700">3. Nabila A.    | 10A | Umur: 145| Bayar: -5000</text>
+                <text x="58" y="198" fill="#303841" font-size="12" font-weight="700">4. Dimas Saputra| X.A | Tgl: 32/13/2026 | WA: 0812</text>
+                <text x="58" y="234" fill="#64748B" font-size="12" font-style="italic">5. [Kosong]     | --- | Umur: ?  | Bayar: dua puluh rb</text>
+
+                <!-- Confused student character on right -->
+                <circle cx="515" cy="128" r="38" fill="#FFD5B8" stroke="#303841" stroke-width="2.5"/>
+                <path d="M477 122 Q515 74 553 122 Q540 96 515 98 Q490 96 477 122 Z" fill="#303841"/>
+                <circle cx="502" cy="128" r="4" fill="#303841"/>
+                <circle cx="528" cy="128" r="4" fill="#303841"/>
+                <path d="M503 146 Q515 138 527 146" stroke="#303841" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <!-- Speech bubble -->
+                <rect x="430" y="34" width="182" height="50" rx="12" fill="#FF5722"/>
+                <text x="444" y="55" fill="#FFFFFF" font-size="11" font-weight="700">"Kok total pesertanya 87 padahal</text>
+                <text x="444" y="71" fill="#FFFFFF" font-size="11" font-weight="700">yang daftar cuma 42 orang ya?!"</text>
+
+                <!-- Interactive Hotspot 1 (Duplicate) -->
+                <g style="cursor:pointer" onclick="showHotspotNote('Baris 1 & 2 mirip banget! Penulisan huruf besar-kecil dan spasi berbeda, padahal bisa jadi orang yang sama.')">
+                  <circle cx="382" cy="118" r="15" fill="#FF5722" stroke="#FFFFFF" stroke-width="3"/>
+                  <text x="378" y="123" fill="#FFFFFF" font-size="12" font-weight="800">!</text>
+                </g>
+                <!-- Interactive Hotspot 2 (Outlier) -->
+                <g style="cursor:pointer" onclick="showHotspotNote('Umur 145 tahun dan bayar -5000?! Angka seperti ini langsung bikin rata-rata hitungan jadi aneh.')">
+                  <circle cx="382" cy="156" r="15" fill="#8B639B" stroke="#FFFFFF" stroke-width="3"/>
+                  <text x="379" y="161" fill="#FFFFFF" font-size="12" font-weight="800">?</text>
+                </g>
+                <!-- Interactive Hotspot 3 (Format/Missing) -->
+                <g style="cursor:pointer" onclick="showHotspotNote('Tanggal 32/13/2026 dan nominal ditulis huruf ("dua puluh rb") bikin sistem sulit menghitung otomatis.')">
+                  <circle cx="382" cy="226" r="15" fill="#303841" stroke="#FFFFFF" stroke-width="3"/>
+                  <text x="379" y="231" fill="#FFFFFF" font-size="12" font-weight="800">#</text>
+                </g>
+              </svg>
+            </div>
+
+            <div class="p-3 rounded-3" id="hotspotNoteBox" style="background: var(--accent-purple-soft); color: var(--text-main); border-left: 4px solid var(--accent-purple);">
+              <div class="small fw-bold mb-1" style="color: var(--accent-purple);">
+                <i class="bi bi-cursor-fill me-1"></i> Catatan Visual Pemantik
+              </div>
+              <div class="small" id="hotspotNoteText">
+                Klik tanda <strong>!</strong>, <strong>?</strong>, atau <strong>#</strong> pada gambar di atas untuk mengamati kejanggalan pada data!
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Pemantik (Customizable YouTube Placeholder) & Pertanyaan Pemantik -->
+        <div class="col-lg-6">
+          <div class="d-flex flex-column gap-4 h-100">
+            <!-- Customizable Video Block -->
+            <div class="canva-card p-4">
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                <span class="fw-bold small text-uppercase" style="color: var(--accent-orange); letter-spacing: 0.05em;">
+                  <i class="bi bi-youtube me-1"></i> Video Pemantik (Link Bisa Diganti)
+                </span>
+                <span class="badge rounded-pill" style="background: var(--surface-elevated); color: var(--text-muted); border: 1px solid var(--border-soft);">
+                  Placeholder YouTube
+                </span>
+              </div>
+
+              <div class="input-group input-group-sm mb-3">
+                <span class="input-group-text fw-semibold" style="background: var(--surface-elevated); color: var(--text-main); border-color: var(--border-soft);">
+                  URL YouTube
+                </span>
+                <input type="url" id="youtubeUrlInput" class="form-control" placeholder="https://www.youtube.com/watch?v=..." value="https://www.youtube.com/watch?v=dQw4w9WgXcQ" />
+                <button type="button" class="btn btn-navy btn-sm px-3" onclick="updateApersepsiVideo()">
+                  Terapkan
+                </button>
+              </div>
+
+              <div class="ratio ratio-16x9 rounded-4 overflow-hidden border" style="border-color: var(--border-soft) !important; background: #12151C;">
+                <iframe id="apersepsiIframe" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Video Pemantik Apersepsi" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+              </div>
+              <div class="form-text mt-2" style="color: var(--text-muted);">
+                Guru atau siswa dapat mengganti tautan video YouTube (misalnya video channel YouTube sekolah/informatika) kapan saja lalu klik <strong>Terapkan</strong>.
+              </div>
+            </div>
+
+            <!-- Pertanyaan Pemantik -->
+            <div class="canva-card p-4 flex-grow-1">
+              <span class="fw-bold small text-uppercase d-block mb-2" style="color: var(--accent-green); letter-spacing: 0.05em;">
+                <i class="bi bi-chat-quote-fill me-1"></i> Pertanyaan Pemantik Diskusi
+              </span>
+
+              <div class="p-3 rounded-3 mb-3" style="background: var(--accent-orange-soft); border-left: 4px solid var(--accent-orange);">
+                <div class="fw-bold small mb-1" style="color: var(--accent-orange);">Pertanyaan 1:</div>
+                <div class="fw-semibold">"Apa yang akan terjadi jika panitia lomba atau bendahara kelas langsung menghitung laporan dari data yang masih berantakan seperti gambar di samping?"</div>
+              </div>
+
+              <div class="p-3 rounded-3 mb-3" style="background: var(--accent-purple-soft); border-left: 4px solid var(--accent-purple);">
+                <div class="fw-bold small mb-1" style="color: var(--accent-purple);">Pertanyaan 2:</div>
+                <div class="fw-semibold">"Apa pendapatmu tentang kebiasaan menyalin-tempel data tanpa mengecek ulang ejaan, angka, atau keaslian datanya?"</div>
+              </div>
+
+              <label for="apersepsiIdeaInput" class="form-label small fw-bold">
+                Ide / Jawaban Singkatmu (untuk diskusi kelas atau PID):
+              </label>
+              <textarea id="apersepsiIdeaInput" rows="3" class="form-control mb-2" placeholder="Tuliskan dugaan atau pendapatmu di sini..." oninput="saveApersepsiNote(this.value)"></textarea>
+              <div class="d-flex justify-content-between align-items-center small" style="color: var(--text-muted);">
+                <span id="apersepsiSavedHint"><i class="bi bi-cloud-check me-1"></i> Tersimpan otomatis di perangkat</span>
+                <button type="button" class="btn btn-canva btn-orange btn-sm py-1 px-3" onclick="completeApersepsiStep()">
+                  Tandai Selesai &amp; Lanjut <i class="bi bi-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         3. STUDI KASUS KONTEKSTUAL (3 PILIHAN KEHIDUPAN NYATA)
+         ------------------------------------------------------------------- -->
+    <section id="page-kasus" class="page-section">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+          <span class="pill-purple mb-2"><i class="bi bi-table"></i> Tahap 2 • Studi Kasus Kontekstual</span>
+          <h2 class="h3 fw-bold mb-0">Simulasi Praktik Pembersihan Data (Data Cleaning)</h2>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="pill-orange"><i class="bi bi-star-fill"></i> Total Skor Kasus: <strong id="totalCaseScoreDisplay">0</strong></span>
+        </div>
+      </div>
+
+      <!-- 3 Pilihan Studi Kasus -->
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+          <button type="button" class="w-100 text-start canva-card p-3 border-2" id="caseTab-0" onclick="selectCaseStudy(0)">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="badge rounded-pill" style="background: var(--accent-orange-soft); color: var(--accent-orange);">Studi Kasus 1</span>
+              <span class="badge rounded-pill" id="caseDoneBadge-0" style="background: var(--surface-elevated); color: var(--text-muted);">Belum</span>
+            </div>
+            <div class="fw-bold font-display">Pendaftaran Ekskul &amp; Class Meeting</div>
+            <div class="small" style="color: var(--text-muted);">Data ganda, inkonsistensi kelas/nama, umur aneh &amp; format tanggal.</div>
+          </button>
+        </div>
+        <div class="col-12 col-md-4">
+          <button type="button" class="w-100 text-start canva-card p-3 border-2" id="caseTab-1" onclick="selectCaseStudy(1)">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="badge rounded-pill" style="background: var(--accent-purple-soft); color: var(--accent-purple);">Studi Kasus 2</span>
+              <span class="badge rounded-pill" id="caseDoneBadge-1" style="background: var(--surface-elevated); color: var(--text-muted);">Belum</span>
+            </div>
+            <div class="fw-bold font-display">Transaksi Kantin Sehat &amp; Koperasi</div>
+            <div class="small" style="color: var(--text-muted);">Harga minus/tidak wajar, nama produk beda ejaan, duplikat struk &amp; format rupiah.</div>
+          </button>
+        </div>
+        <div class="col-12 col-md-4">
+          <button type="button" class="w-100 text-start canva-card p-3 border-2" id="caseTab-2" onclick="selectCaseStudy(2)">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="badge rounded-pill" style="background: var(--accent-green-soft); color: var(--accent-green);">Studi Kasus 3</span>
+              <span class="badge rounded-pill" id="caseDoneBadge-2" style="background: var(--surface-elevated); color: var(--text-muted);">Belum</span>
+            </div>
+            <div class="fw-bold font-display">Survei Kebiasaan Belajar &amp; Gadget</div>
+            <div class="small" style="color: var(--text-muted);">Jam belajar/tidur di luar nalar (&gt;24 jam), kategori inkonsisten, &amp; entri ganda.</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Case Study Workspace -->
+      <div class="canva-card p-4 mb-4">
+        <div class="row g-3 align-items-center border-bottom pb-3 mb-3" style="border-color: var(--border-soft) !important;">
+          <div class="col-lg-8">
+            <h3 class="h5 fw-bold mb-1" id="activeCaseTitle">Judul Studi Kasus</h3>
+            <p class="small mb-0" style="color: var(--text-muted);" id="activeCaseContext">Deskripsi konteks studi kasus.</p>
+          </div>
+          <div class="col-lg-4 text-lg-end">
+            <div class="d-inline-flex align-items-center gap-3 px-3 py-2 rounded-3" style="background: var(--surface-elevated); border: 1px solid var(--border-soft);">
+              <div>
+                <div class="small" style="color: var(--text-muted);">Skor Kasus Ini</div>
+                <div class="fw-bold fs-5" style="color: var(--accent-orange);" id="activeCaseScore">0 / 100</div>
+              </div>
+              <div class="vr"></div>
+              <div>
+                <div class="small" style="color: var(--text-muted);">Baris Valid</div>
+                <div class="fw-bold fs-5" style="color: var(--accent-green);" id="activeCaseValidCount">0 / 0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Guide of 6 Cleaning Actions -->
+        <div class="p-3 rounded-4 mb-3" style="background: var(--surface-elevated); border: 1px solid var(--border-soft);">
+          <div class="small fw-bold mb-2" style="color: var(--accent-purple);">
+            <i class="bi bi-sliders me-1"></i> Panduan 6 Aktivitas Pembersihan Data pada Tabel:
+          </div>
+          <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-2 small" style="color: var(--text-muted);">
+            <div><strong>1. Identifikasi:</strong> Pilih label masalah pada kolom <em>Isu Terdeteksi</em>.</div>
+            <div><strong>2. Hapus / Gabung:</strong> Klik <span class="badge bg-danger-subtle text-danger">Hapus</span> untuk baris ganda/sampah, atau <span class="badge bg-info-subtle text-info">Gabung</span> untuk menyatukan duplikat.</div>
+            <div><strong>3. Koreksi Typo/Inkonsistensi:</strong> Rapikan ejaan/kapitalisasi/kategori pada kolom data.</div>
+            <div><strong>4. Koreksi Data Tidak Wajar:</strong> Perbaiki angka di luar batas logika (umur 150, harga negatif, jam &gt;24).</div>
+            <div><strong>5. Normalisasi Data:</strong> Klik <span class="badge bg-secondary-subtle text-secondary">Normalisasi</span> agar format tanggal/angka/teks seragam.</div>
+            <div><strong>6. Validasi &amp; Verifikasi:</strong> Klik <span class="badge bg-success-subtle text-success">Verifikasi</span> jika baris sudah bersih &amp; valid.</div>
+          </div>
+        </div>
+
+        <!-- Action Toolbar -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-canva btn-purple btn-sm" onclick="evaluateCurrentCase()">
+              <i class="bi bi-check2-square"></i> Periksa &amp; Hitung Skor
+            </button>
+            <button type="button" class="btn btn-canva btn-green btn-sm" onclick="exportCaseToExcel()">
+              <i class="bi bi-file-earmark-spreadsheet-fill"></i> Download Hasil (Excel .xls)
+            </button>
+            <button type="button" class="btn btn-canva btn-soft btn-sm" onclick="resetCurrentCase()">
+              <i class="bi bi-arrow-repeat text-danger"></i> Reset Percobaan Kasus
+            </button>
+          </div>
+          <button type="button" class="btn btn-canva btn-soft btn-sm" onclick="toggleHintBox()">
+            <i class="bi bi-lightbulb-fill text-warning"></i> Petunjuk Analisis
+          </button>
+        </div>
+
+        <!-- Optional Hint Box -->
+        <div class="alert alert-warning rounded-4 d-none mb-3" id="caseHintBox">
+          <strong>Petunjuk Detektif Data:</strong> <span id="caseHintText"></span>
+        </div>
+
+        <!-- Automatic Feedback Box -->
+        <div class="p-3 rounded-4 mb-3" id="caseFeedbackBox" style="background: var(--accent-purple-soft); border-left: 4px solid var(--accent-purple);">
+          <div class="fw-bold small mb-1" style="color: var(--accent-purple);">
+            <i class="bi bi-robot me-1"></i> Umpan Balik Otomatis
+          </div>
+          <div class="small" id="caseFeedbackText">
+            Mulai periksa tiap baris data, perbaiki kejanggalan, klik <strong>Verifikasi</strong> pada baris yang sudah bersih, lalu klik <strong>Periksa &amp; Hitung Skor</strong>.
+          </div>
+        </div>
+
+        <!-- Interactive Data Table -->
+        <div class="cleaning-table-wrap">
+          <table class="table cleaning-table align-middle" id="cleaningDataTable">
+            <thead id="cleaningTableHead"></thead>
+            <tbody id="cleaningTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         4. ASESMEN AKHIR (10 SOAL TINGKAT SEDANG-TINGGI + TIMER + PREDIKAT)
+         ------------------------------------------------------------------- -->
+    <section id="page-asesmen" class="page-section">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+          <span class="pill-green mb-2"><i class="bi bi-patch-check-fill"></i> Tahap 3 • Asesmen Akhir</span>
+          <h2 class="h3 fw-bold mb-0">Evaluasi Pembersihan Data (10 Soal Analisis)</h2>
+        </div>
+        <!-- Timer Box -->
+        <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-4 canva-card">
+          <i class="bi bi-alarm-fill fs-5" style="color: var(--accent-orange);"></i>
+          <div>
+            <div class="small" style="color: var(--text-muted); line-height: 1;">Sisa Waktu</div>
+            <div class="fw-bold font-display fs-5" id="quizTimerDisplay">15:00</div>
+          </div>
+          <button type="button" class="btn btn-canva btn-soft btn-sm py-1 px-2 ms-1" id="btnPauseTimer" onclick="toggleQuizTimer()" title="Jeda / Lanjutkan Timer">
+            <i class="bi bi-pause-fill" id="timerPauseIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quiz Result Banner (Hidden until submitted) -->
+      <div class="canva-card p-4 mb-4 d-none" id="quizResultCard" style="border: 2px solid var(--accent-purple);">
+        <div class="row align-items-center g-3">
+          <div class="col-md-4 text-center">
+            <div class="small text-uppercase fw-bold" style="color: var(--text-muted);">Nilai Akhir</div>
+            <div class="display-4 fw-bold font-display" style="color: var(--accent-orange);" id="quizFinalScoreText">0</div>
+            <span class="badge rounded-pill px-3 py-2 fs-6" id="quizPredicateBadge">-</span>
+          </div>
+          <div class="col-md-8">
+            <h3 class="h5 fw-bold mb-2" id="quizResultHeading">Hasil Asesmen Akhir</h3>
+            <p class="small mb-3" id="quizResultMessage"></p>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="btn btn-canva btn-orange btn-sm" onclick="navigateTo('sertifikat')">
+                <i class="bi bi-award-fill"></i> Ke Sertifikat Hasil Belajar
+              </button>
+              <button type="button" class="btn btn-canva btn-soft btn-sm" onclick="retakeQuiz()">
+                <i class="bi bi-arrow-clockwise"></i> Ulangi Asesmen
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Questions Container -->
+      <form id="quizForm" onsubmit="event.preventDefault(); submitQuiz();">
+        <div id="quizQuestionsContainer" class="d-flex flex-column gap-3 mb-4"></div>
+
+        <div class="canva-card p-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+          <div class="small" style="color: var(--text-muted);">
+            Terjawab: <strong id="quizAnsweredCount">0</strong> / 10 soal
+          </div>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-canva btn-soft" onclick="retakeQuiz()">
+              <i class="bi bi-x-circle"></i> Bersihkan Jawaban
+            </button>
+            <button type="submit" class="btn btn-canva btn-orange" id="btnSubmitQuiz">
+              <i class="bi bi-send-check-fill"></i> Kumpulkan &amp; Lihat Nilai
+            </button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         5. REFLEKSI PEMBELAJARAN
+         ------------------------------------------------------------------- -->
+    <section id="page-refleksi" class="page-section">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+          <span class="pill-purple mb-2"><i class="bi bi-journal-bookmark-fill"></i> Tahap 4 • Refleksi Diri</span>
+          <h2 class="h3 fw-bold mb-0">Refleksi Mendalam Pengalaman Belajarmu</h2>
+        </div>
+        <button type="button" class="btn btn-canva btn-orange btn-sm" onclick="navigateTo('sertifikat')">
+          Lanjut ke Sertifikat <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+
+      <div class="canva-card p-4">
+        <p class="small mb-4" style="color: var(--text-muted);">
+          Luangkan waktu sejenak untuk menuliskan refleksi jujurmu. Jawaban tersimpan otomatis di browser dan dapat disalin atau diunduh bersama rekap belajar.
+        </p>
+
+        <div class="row g-4">
+          <div class="col-12 col-md-6">
+            <label for="refUnderstand" class="form-label fw-bold">
+              1. Saya sudah memahami...
+            </label>
+            <textarea id="refUnderstand" rows="4" class="form-control" placeholder="Tuliskan konsep atau langkah pembersihan data yang sudah kamu pahami..." oninput="saveReflectionData()"></textarea>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label for="refInteresting" class="form-label fw-bold">
+              2. Hal yang paling menarik adalah...
+            </label>
+            <textarea id="refInteresting" rows="4" class="form-control" placeholder="Ceritakan bagian studi kasus, kejanggalan data, atau aktivitas yang paling berkesan..." oninput="saveReflectionData()"></textarea>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label for="refConfusing" class="form-label fw-bold">
+              3. Hal yang masih membingungkan adalah...
+            </label>
+            <textarea id="refConfusing" rows="4" class="form-control" placeholder="Tuliskan bagian yang masih perlu didiskusikan bersama teman atau Pak Muhammad Irpan..." oninput="saveReflectionData()"></textarea>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label for="refPlan" class="form-label fw-bold">
+              4. Rencana saya setelah belajar materi ini adalah...
+            </label>
+            <textarea id="refPlan" rows="4" class="form-control" placeholder="Bagaimana kamu akan menerapkan kebiasaan merapikan & memvalidasi data saat membuat proyek/laporan?" oninput="saveReflectionData()"></textarea>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4 pt-3 border-top" style="border-color: var(--border-soft) !important;">
+          <span class="small" style="color: var(--accent-green);" id="reflectionStatusLabel">
+            <i class="bi bi-shield-check me-1"></i> Siap disimpan otomatis
+          </span>
+          <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-canva btn-soft btn-sm" onclick="copyReflectionToClipboard()">
+              <i class="bi bi-clipboard-check"></i> Salin Teks Refleksi
+            </button>
+            <button type="button" class="btn btn-canva btn-green btn-sm" onclick="saveReflectionExplicitly()">
+              <i class="bi bi-check2-circle"></i> Simpan Refleksi
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         6. SERTIFIKAT HASIL BELAJAR (UKURAN KERTAS A5)
+         ------------------------------------------------------------------- -->
+    <section id="page-sertifikat" class="page-section">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+          <span class="pill-orange mb-2"><i class="bi bi-award-fill"></i> Tahap 5 • Sertifikat Hasil Belajar (A5)</span>
+          <h2 class="h3 fw-bold mb-0">Sertifikat Kelulusan Aktivitas Belajar</h2>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <button type="button" class="btn btn-canva btn-orange btn-sm" onclick="downloadCertificatePDF()">
+            <i class="bi bi-file-earmark-pdf-fill"></i> Unduh Sertifikat PDF
+          </button>
+          <button type="button" class="btn btn-canva btn-navy btn-sm" onclick="printCertificateA5()">
+            <i class="bi bi-printer-fill"></i> Cetak Sertifikat
+          </button>
+        </div>
+      </div>
+
+      <!-- Student Data Form for Certificate -->
+      <div class="canva-card p-4 mb-4">
+        <h3 class="h6 fw-bold text-uppercase mb-3" style="color: var(--accent-purple); letter-spacing: 0.05em;">
+          <i class="bi bi-pencil-square me-1"></i> Lengkapi / Perbarui Identitas pada Sertifikat
+        </h3>
+        <div class="row g-3">
+          <div class="col-12 col-md-4">
+            <label for="certInputName" class="form-label small fw-bold">Nama Peserta Didik</label>
+            <input type="text" id="certInputName" class="form-control" placeholder="Nama lengkap peserta didik" oninput="syncStudentIdentity(this.value, null)" />
+          </div>
+          <div class="col-12 col-md-4">
+            <label for="certInputClass" class="form-label small fw-bold">Kelas</label>
+            <input type="text" id="certInputClass" class="form-control" placeholder="Contoh: X-1 / X IPA 2" oninput="syncStudentIdentity(null, this.value)" />
+          </div>
+          <div class="col-12 col-md-4">
+            <label for="certInputDate" class="form-label small fw-bold">Tanggal Belajar</label>
+            <input type="text" id="certInputDate" class="form-control" oninput="updateCertificatePreview()" />
+          </div>
+        </div>
+        <div class="form-text mt-2" style="color: var(--text-muted);">
+          Nilai akhir pada sertifikat otomatis mengambil nilai Asesmen Akhir (atau rata-rata skor studi kasus jika asesmen belum dikerjakan). Ukuran dokumen diatur pada format kertas <strong>A5 (210 mm &times; 148 mm)</strong>.
+        </div>
+      </div>
+
+      <!-- A5 Certificate Preview Stage -->
+      <div class="certificate-stage" id="certificatePrintRoot">
+        <div class="cert-a5-sheet" id="certificateA5Element">
+          <div class="cert-corner-blob-tl"></div>
+          <div class="cert-corner-blob-tr"></div>
+          <div class="cert-corner-blob-bl"></div>
+          <div class="cert-corner-blob-br"></div>
+
+          <div class="cert-frame-inner">
+            <!-- Top Institution Header -->
+            <div class="text-center">
+              <div class="cert-school-banner mb-1">SMA KHALIFAH BOARDING SCHOOL</div>
+              <div class="fw-bold" style="font-size: 1.05rem; color: #8B639B; letter-spacing: 0.08em;">
+                SERTIFIKAT HASIL BELAJAR
+              </div>
+              <div style="font-size: 0.72rem; color: #5C6672;">
+                Diberikan dengan bangga atas partisipasi &amp; capaian belajar pada Media Pembelajaran Interaktif Informatika:
+              </div>
+            </div>
+
+            <!-- Recipient & Subject -->
+            <div class="text-center my-1">
+              <div class="cert-student-name" id="certDisplayName">Peserta Didik Kelas X</div>
+              <div style="font-size: 0.78rem; font-weight: 700; color: #303841;">
+                Kelas: <span id="certDisplayClass" style="color: #8B639B;">X SMA</span>
+              </div>
+              <div class="mt-1 px-3 py-1 rounded-3 d-inline-block" style="background: rgba(139, 99, 155, 0.1); border: 1px solid rgba(139, 99, 155, 0.25);">
+                <span style="font-size: 0.72rem; color: #303841;">Materi: </span>
+                <strong style="font-size: 0.82rem; color: #FF5722;">Analisis Data — Pembersihan Data (Data Cleaning)</strong>
+              </div>
+            </div>
+
+            <!-- Score & Date Row -->
+            <div class="row g-2 align-items-center text-center my-1">
+              <div class="col-4">
+                <div class="p-2 rounded-3" style="background: rgba(255, 87, 34, 0.09); border: 1px solid rgba(255, 87, 34, 0.25);">
+                  <div style="font-size: 0.65rem; text-transform: uppercase; font-weight: 700; color: #5C6672;">Nilai Akhir</div>
+                  <div style="font-size: 1.25rem; font-weight: 800; color: #FF5722; line-height: 1.1;" id="certDisplayScore">0</div>
+                  <div style="font-size: 0.68rem; font-weight: 700; color: #303841;" id="certDisplayPredicate">Perlu Bimbingan</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="p-2 rounded-3" style="background: rgba(139, 99, 155, 0.09); border: 1px solid rgba(139, 99, 155, 0.25);">
+                  <div style="font-size: 0.65rem; text-transform: uppercase; font-weight: 700; color: #5C6672;">Ukuran Dokumen</div>
+                  <div style="font-size: 1.05rem; font-weight: 800; color: #8B639B; line-height: 1.35;">Kertas A5</div>
+                  <div style="font-size: 0.66rem; color: #5C6672;">210 &times; 148 mm</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="p-2 rounded-3" style="background: rgba(48, 56, 65, 0.07); border: 1px solid rgba(48, 56, 65, 0.2);">
+                  <div style="font-size: 0.65rem; text-transform: uppercase; font-weight: 700; color: #5C6672;">Tanggal Belajar</div>
+                  <div style="font-size: 0.82rem; font-weight: 800; color: #303841; line-height: 1.55;" id="certDisplayDate">-</div>
+                  <div style="font-size: 0.65rem; color: #5C6672;">SMA Khalifah Boarding School</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer & Signature of Muhammad Irpan, S.Kom -->
+            <div class="d-flex justify-content-between align-items-end pt-1">
+              <div style="font-size: 0.68rem; color: #5C6672; max-width: 52%;">
+                <div class="fw-bold" style="color: #303841;">SMA KHALIFAH BOARDING SCHOOL</div>
+                <div>Program Pembelajaran Mendalam • Mata Pelajaran Informatika (Jenjang SMA Kelas X)</div>
+              </div>
+
+              <div class="text-center" style="min-width: 215px;">
+                <div style="font-size: 0.7rem; color: #303841;">Mengesahkan, Guru Informatika</div>
+                <!-- Stylized Paraf / Signature SVG -->
+                <div class="my-0" style="height: 42px; display: flex; align-items: center; justify-content: center;">
+                  <svg viewBox="0 0 200 50" width="150" height="40" aria-label="Paraf Muhammad Irpan, S.Kom">
+                    <path d="M18 38 C24 14, 34 10, 38 34 C42 20, 52 14, 58 32 C68 16, 86 12, 104 24 C122 35, 148 22, 178 18" fill="none" stroke="#303841" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M32 28 Q62 42 96 28" fill="none" stroke="#FF5722" stroke-width="1.6" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div style="font-size: 0.8rem; font-weight: 800; color: #303841; border-top: 1.5px solid #303841; padding-top: 2px;">
+                  Muhammad Irpan, S.Kom
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- =====================================================================
+       FOOTER PROFESIONAL
+       ===================================================================== -->
+  <footer class="mpi-footer py-4">
+    <div class="container-xxl">
+      <div class="row g-3 align-items-center justify-content-between">
+        <div class="col-md-7">
+          <div class="fw-bold font-display" style="color: var(--text-main);">
+            Media Pembelajaran Interaktif — Pembersihan Data (Data Cleaning)
+          </div>
+          <div class="small">
+            Informatika SMA Kelas X • <strong>SMA KHALIFAH BOARDING SCHOOL</strong> • Guru Informatika: <strong>Muhammad Irpan, S.Kom</strong>
+          </div>
+        </div>
+        <div class="col-md-5 text-md-end small">
+          <div>Berjalan mandiri tanpa database &amp; siap untuk Google Sites / GitHub Pages / PID.</div>
+          <div class="mt-1">
+            <a href="#page-home" onclick="event.preventDefault(); navigateTo('home');" class="text-decoration-none me-2" style="color: var(--accent-orange); font-weight: 600;">Beranda</a> •
+            <a href="#page-kasus" onclick="event.preventDefault(); navigateTo('kasus');" class="text-decoration-none mx-2" style="color: var(--accent-purple); font-weight: 600;">Studi Kasus</a> •
+            <a href="#page-sertifikat" onclick="event.preventDefault(); navigateTo('sertifikat');" class="text-decoration-none ms-2" style="color: var(--text-main); font-weight: 600;">Sertifikat A5</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =====================================================================
+       RESET CONFIRMATION MODAL (NO browser confirm() used)
+       ===================================================================== -->
+  <div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4" style="background: var(--surface-card); color: var(--text-main); border: 1px solid var(--border-soft);">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold font-display" id="resetModalLabel">
+            <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Ulangi Materi &amp; Reset Progress?
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body small" style="color: var(--text-muted);">
+          Tindakan ini akan menghapus progres belajar, skor studi kasus, nilai asesmen akhir, refleksi, dan badge yang tersimpan di browser ini. Identitas nama/kelas tetap bisa kamu isi ulang.
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-canva btn-soft btn-sm" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-canva btn-orange btn-sm" onclick="confirmResetAllProgress()">
+            Ya, Reset Semua Progress
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5.3 JS Bundle via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    /* =====================================================================
+       STATE MANAGEMENT & PERSISTENCE (LOCALSTORAGE)
+       ===================================================================== */
+    const STORAGE_KEY = 'mpi_datacleaning_smakhalifah_v1';
+    const PAGE_ORDER = ['home', 'apersepsi', 'kasus', 'asesmen', 'refleksi', 'sertifikat'];
+    const PAGE_TITLES = {
+      home: 'Beranda',
+      apersepsi: '1. Apersepsi',
+      kasus: '2. Studi Kasus',
+      asesmen: '3. Asesmen Akhir',
+      refleksi: '4. Refleksi',
+      sertifikat: '5. Sertifikat A5'
+    };
+
+    // Initial Case Studies Dataset (3 Real-Life Contexts)
+    function createInitialCases() {
+      return [
+        {
+          id: 0,
+          title: 'Studi Kasus 1: Pendaftaran Ekstrakurikuler & Lomba Class Meeting',
+          context: 'Panitia OSIS merekap pendaftaran lomba futsal & ekskul robotik dari formulir kelas X. Terdapat baris ganda, penulisan kelas/nama yang tidak konsisten, umur yang tidak masuk akal, dan format tanggal berantakan.',
+          hint: 'Perhatikan baris dengan nama "Raka Pratama" & "raka pratama" (duplikat), umur "155" atau "-2", kelas "x-1" / "10A" / "X.1", dan tanggal yang tidak standar.',
+          columns: ['Nama Siswa', 'Kelas', 'Umur', 'Tanggal Daftar', 'Isu Terdeteksi', 'Status'],
+          rows: [
+            { id: 101, c1: 'Raka Pratama', c2: 'X-1', c3: '16', c4: '2026-11-10', issue: 'none', verified: false, merged: false },
+            { id: 102, c1: 'raka pratama', c2: 'x1', c3: '16', c4: '10/11/2026', issue: 'duplicate', verified: false, merged: false },
+            { id: 103, c1: 'Nabila Azzahra', c2: '10A', c3: '155', c4: '2026-11-11', issue: 'outlier', verified: false, merged: false },
+            { id: 104, c1: 'dimas saputra', c2: 'X.2', c3: '16', c4: '32-13-2026', issue: 'format', verified: false, merged: false },
+            { id: 105, c1: 'Alya Rahma', c2: 'X-2', c3: '15', c4: '2026-11-12', issue: 'none', verified: false, merged: false },
+            { id: 106, c1: 'Bintang Putra', c2: 'kelas 10', c3: '-3', c4: '2026-11-12', issue: 'outlier', verified: false, merged: false }
+          ]
+        },
+        {
+          id: 1,
+          title: 'Studi Kasus 2: Transaksi Kantin Sehat & Koperasi Siswa',
+          context: 'Pengurus Koperasi Siswa merekap penjualan makanan sehat & alat tulis. Ada nominal harga negatif, penulisan nama item yang inkonsisten, dan baris transaksi ganda.',
+          hint: 'Cek harga yang bernilai negatif atau ribuan kali lipat (seperti -4500 atau 2500000 untuk roti), nama produk seperti "roti gandum" vs "Roti Gandum", serta entri ganda.',
+          columns: ['Nama Item', 'Kategori', 'Harga (Rp)', 'Tanggal', 'Isu Terdeteksi', 'Status'],
+          rows: [
+            { id: 201, c1: 'Roti Gandum', c2: 'Makanan', c3: '8000', c4: '2026-11-14', issue: 'none', verified: false, merged: false },
+            { id: 202, c1: 'roti gandum', c2: 'makanan ', c3: '8000', c4: '14/11/2026', issue: 'duplicate', verified: false, merged: false },
+            { id: 203, c1: 'Air Mineral', c2: 'Minuman', c3: '-3000', c4: '2026-11-14', issue: 'outlier', verified: false, merged: false },
+            { id: 204, c1: 'buku tulis sidu', c2: 'ATK', c3: '5000', c4: '2026-11-15', issue: 'typo', verified: false, merged: false },
+            { id: 205, c1: 'Jus Alpukat', c2: 'Minuman', c3: '950000', c4: '2026-11-15', issue: 'outlier', verified: false, merged: false },
+            { id: 206, c1: 'Pulpen Gel', c2: 'atk', c3: '3500', c4: '2026-11-16', issue: 'typo', verified: false, merged: false }
+          ]
+        },
+        {
+          id: 2,
+          title: 'Studi Kasus 3: Survei Kebiasaan Belajar & Penggunaan Gadget Kelas X',
+          context: 'Tim riset kelas X mengumpulkan data durasi belajar mandiri dan waktu layar (screen time) harian. Ditemukan jam melebihi 24 jam sehari, label kategori tidak seragam, dan jawaban ganda.',
+          hint: 'Ingat: satu hari hanya 24 jam! Cek jam belajar/tidur > 24 atau negatif, label seperti "Tinggi / tinggi / TINGGI", dan responden yang terinput dua kali.',
+          columns: ['Nama Responden', 'Jam Belajar/Hari', 'Jam Gadget/Hari', 'Pola Tidur', 'Isu Terdeteksi', 'Status'],
+          rows: [
+            { id: 301, c1: 'Farhan Hakim', c2: '2.5', c3: '4', c4: 'Cukup', issue: 'none', verified: false, merged: false },
+            { id: 302, c1: 'Farhan Hakim', c2: '2.5', c3: '4', c4: 'cukup', issue: 'duplicate', verified: false, merged: false },
+            { id: 303, c1: 'Siti Zahra', c2: '36', c3: '3', c4: 'Kurang', issue: 'outlier', verified: false, merged: false },
+            { id: 304, c1: 'Kevin Pratama', c2: '2', c3: '-2', c4: 'Baik', issue: 'outlier', verified: false, merged: false },
+            { id: 305, c1: 'salma nadia', c2: '3', c3: '5', c4: 'kurang tidur', issue: 'typo', verified: false, merged: false },
+            { id: 306, c1: 'Zaki Rahman', c2: '1.5', c3: '3.5', c4: 'Baik', issue: 'none', verified: false, merged: false }
+          ]
+        }
+      ];
+    }
+
+    // 10 Moderate-to-High Difficulty Multiple Choice Questions
+    const QUIZ_QUESTIONS = [
+      {
+        q: 'Dalam rekap absensi digital, muncul dua baris: "Ahmad Fauzi | X-1 | 08:05" dan "ahmad fauzi | x1 | 08:05". Mengapa komputer tidak otomatis mendeteksinya sebagai data yang sama persis?',
+        options: [
+          'Karena komputer membedakan huruf kapital, spasi ekstra, dan variasi format penulisan kelas ("X-1" vs "x1")',
+          'Karena waktu 08:05 tidak dapat dibaca oleh perangkat lunak analisis data',
+          'Karena nama depan dan nama belakang harus dipisah menjadi dua tabel berbeda',
+          'Karena data absensi hanya bisa diolah jika jumlah barisnya genap'
+        ],
+        answer: 0,
+        explanation: 'Perbedaan kapitalisasi (case sensitivity), spasi, dan format penulisan ("X-1" vs "x1") menyebabkan pencocokan string persis gagal tanpa normalisasi teks terlebih dahulu.'
+      },
+      {
+        q: 'Sebuah survei durasi tidur malam siswa kelas X menghasilkan data: 7, 6.5, 8, 7, 72, 6, dan 7.5 jam. Nilai "72" termasuk kategori masalah data apa dan berdampak paling besar pada statistik mana?',
+        options: [
+          'Duplikasi data; paling memengaruhi median dan modus',
+          'Data tidak wajar / outlier; sangat mendistorsi nilai rata-rata (mean) ke atas',
+          'Inkonsistensi format tanggal; memengaruhi urutan abjad',
+          'Missing value; membuat seluruh kolom terhapus otomatis'
+        ],
+        answer: 1,
+        explanation: 'Durasi tidur 72 jam dalam semalam tidak wajar (outlier) karena melebihi 24 jam, sehingga menarik nilai rata-rata (mean) menjadi jauh lebih tinggi dari kondisi sebenarnya.'
+      },
+      {
+        q: 'Manakah langkah urutan pembersihan data yang paling logis sebelum melakukan analisis statistik pada dataset survei siswa?',
+        options: [
+          'Menghapus seluruh baris yang mengandung huruf kecil, lalu menghitung rata-rata',
+          'Mengubah semua angka menjadi teks, lalu menggabungkan semua kolom menjadi satu kalimat',
+          'Mengidentifikasi & menangani duplikasi/outlier, menormalkan format/kategori, lalu memvalidasi data',
+          'Langsung membuat grafik batang sebelum memeriksa nilai aneh atau data kosong'
+        ],
+        answer: 2,
+        explanation: 'Data perlu dibersihkan dari duplikat/anomali serta dinormalisasi dan divalidasi terlebih dahulu agar analisis dan visualisasi menghasilkan kesimpulan yang akurat.'
+      },
+      {
+        q: 'Pada kolom "Harga Tiket Lomba (Rp)" terdapat nilai "-15000" akibat kesalahan input tanda minus saat merekap kas. Tindakan pembersihan yang tepat adalah...',
+        options: [
+          'Membiarkannya karena tanda minus menandakan harga diskon khusus',
+          'Memverifikasi ke sumber transaksi/aturan domain, lalu mengoreksinya menjadi nilai positif valid (misal 15000) setelah dipastikan',
+          'Mengubah seluruh angka pada kolom harga menjadi teks berhuruf',
+          'Menghapus seluruh tabel transaksi hari itu'
+        ],
+        answer: 1,
+        explanation: 'Harga tiket tidak wajar jika bernilai negatif; perlu diperiksa/dikoreksi sesuai fakta transaksi valid agar total pemasukan tidak berkurang secara keliru.'
+      },
+      {
+        q: 'Seorang siswa menuliskan tanggal kegiatan dengan berbagai gaya: "12/05/2026", "2026-05-12", dan "12 Mei 2026". Mengapa normalisasi format tanggal sangat penting?',
+        options: [
+          'Agar file Excel menjadi lebih berat dan sulit dibuka',
+          'Agar pengurutan kronologis, penyaringan rentang waktu, dan perhitungan selisih hari berjalan konsisten',
+          'Agar tahun otomatis berubah menjadi tahun kabisat',
+          'Karena format "2026-05-12" selalu dianggap salah oleh manusia'
+        ],
+        answer: 1,
+        explanation: 'Format tanggal yang seragam (misalnya ISO YYYY-MM-DD) mencegah salah tafsir antara DD/MM dan MM/DD serta memudahkan pengurutan dan analisis waktu.'
+      },
+      {
+        q: 'Dalam data pendaftaran ekskul, "Citra Kirani" mendaftar dua kali pada tanggal berbeda dengan pilihan ekskul yang saling melengkapi (Pramuka dan Jurnalistik). Keputusan yang paling tepat adalah...',
+        options: [
+          'Menghapus baris kedua tanpa memeriksa isinya',
+          'Menggabungkan/merekonsiliasi informasi yang valid agar tidak kehilangan data ekskul kedua sambil menghindari penghitungan orang ganda',
+          'Mengganti nama "Citra Kirani" menjadi "Anonim"',
+          'Menambahkan baris kosong di antara keduanya'
+        ],
+        answer: 1,
+        explanation: 'Saat dua entri merujuk pada individu yang sama dengan informasi tambahan yang relevan, penggabungan (merge/deduplikasi cerdas) menjaga kelengkapan data tanpa menggandakan jumlah siswa.'
+      },
+      {
+        q: 'Mengapa validasi data berbasis aturan domain (domain constraints) diperlukan meskipun sebuah data sudah bebas dari kesalahan ejaan?',
+        options: [
+          'Karena ejaan yang benar belum tentu menjamin nilai berada dalam rentang logis (misalnya umur 120 tahun untuk siswa SMA)',
+          'Karena komputer tidak bisa mengecek ejaan bahasa Indonesia',
+          'Karena aturan domain hanya berlaku untuk file gambar',
+          'Agar semua nilai berubah menjadi nol'
+        ],
+        answer: 0,
+        explanation: 'Suatu entri bisa saja ditulis dengan rapi dan tanpa typo, tetapi tetap tidak valid secara domain (misalnya umur siswa SMA 120 tahun atau skor ujian 150 dari skala 100).'
+      },
+      {
+        q: 'Pada kolom "Status Keaktifan", ditemukan nilai: "Aktif", "aktif", "AKTIF", dan "Aktif ". Proses yang mengubah variasi tersebut menjadi satu label baku "Aktif" disebut...',
+        options: [
+          'Enkripsi data',
+          'Normalisasi / standarisasi kategori',
+          'Kompresi file',
+          'Randomisasi sampel'
+        ],
+        answer: 1,
+        explanation: 'Menyatukan variasi penulisan/kapitalisasi/spasi menjadi satu nilai standar yang konsisten merupakan bagian dari normalisasi/standarisasi data.'
+      },
+      {
+        q: 'Jika sebuah dataset memiliki beberapa baris dengan nilai kosong (missing value) pada kolom "Waktu Tempuh ke Sekolah (menit)", langkah terbaik sebelum memutuskan menghapus barisnya adalah...',
+        options: [
+          'Menghapus seluruh kolom "Nama Siswa" sebagai gantinya',
+          'Menelusuri penyebab kekosongan, mengecek apakah bisa dilengkapi dari sumber valid, atau menilai dampaknya terhadap ukuran sampel',
+          'Mengisi semua sel kosong dengan angka 9999 agar terlihat penuh',
+          'Mengunci sheet agar tidak bisa diedit'
+        ],
+        answer: 1,
+        explanation: 'Penanganan data kosong harus mempertimbangkan konteks dan dampaknya; menghapus sembarangan dapat mengurangi sampel secara signifikan, sementara mengisi angka sembarangan merusak analisis.'
+      },
+      {
+        q: 'Dalam prinsip Pembelajaran Mendalam (Deep Learning) dan analisis data beretika, mengapa pembersihan data tidak boleh dilakukan dengan "mengarang" data yang hilang?',
+        options: [
+          'Karena mengarang data (fabrikasi) merusak kejujuran ilmiah dan menghasilkan keputusan yang menyesatkan',
+          'Karena spreadsheet melarang mengetik angka setelah jam 12 siang',
+          'Karena data hasil pembersihan tidak boleh disimpan ke format Excel',
+          'Karena data yang bersih harus selalu berjumlah tepat 10 baris'
+        ],
+        answer: 0,
+        explanation: 'Pembersihan data bertujuan mengungkapkan kualitas dan kebenaran data secara akurat dan bertanggung jawab, bukan memanipulasi atau mengarang fakta.'
+      }
+    ];
+
+    const BADGES_META = [
+      { id: 'explorer', title: 'Pengamat Data Jeli', desc: 'Menyelesaikan tahap Apersepsi & menjawab pertanyaan pemantik.', icon: 'bi-eye-fill', color: '#FF5722' },
+      { id: 'cleaner_1', title: 'Detektif Tabel Pemula', desc: 'Menyelesaikan minimal 1 Studi Kasus pembersihan data.', icon: 'bi-funnel-fill', color: '#8B639B' },
+      { id: 'cleaner_master', title: 'Master Data Cleaning', desc: 'Menyelesaikan seluruh 3 Studi Kasus kontekstual.', icon: 'bi-stars', color: '#2E8B57' },
+      { id: 'quiz_pro', title: 'Analis Andal', desc: 'Menyelesaikan Asesmen Akhir dengan nilai >= 80.', icon: 'bi-patch-check-fill', color: '#2196F3' },
+      { id: 'reflector', title: 'Pemikir Reflektif', desc: 'Menuliskan refleksi pembelajaran mendalam di halaman Refleksi.', icon: 'bi-journal-check', color: '#8B639B' }
+    ];
+
+    function getDefaultState() {
+      const todayStr = new Date().toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+      });
+      return {
+        currentPage: 'home',
+        theme: 'light',
+        musicOn: false,
+        studentName: '',
+        studentClass: '',
+        certDate: todayStr,
+        visitedPages: ['home'],
+        apersepsiCompleted: false,
+        apersepsiNote: '',
+        youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        activeCaseId: 0,
+        cases: createInitialCases(),
+        caseScores: { 0: 0, 1: 0, 2: 0 },
+        caseCompleted: { 0: false, 1: false, 2: false },
+        quizAnswers: {},
+        quizSubmitted: false,
+        quizScore: null,
+        quizSecondsLeft: 15 * 60,
+        quizTimerPaused: false,
+        reflection: {
+          understand: '',
+          interesting: '',
+          confusing: '',
+          plan: ''
+        },
+        reflectionSaved: false,
+        badges: []
+      };
+    }
+
+    let appState = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return getDefaultState();
+        const parsed = JSON.parse(raw);
+        return { ...getDefaultState(), ...parsed };
+      } catch (e) {
+        return getDefaultState();
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        console.warn('Gagal menyimpan state ke localStorage:', e);
+      }
+    }
+
+    /* =====================================================================
+       TOAST NOTIFICATION HELPER (NO alert() EVER)
+       ===================================================================== */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const colorMap = {
+        success: '#2E8B57',
+        warning: '#FF5722',
+        info: '#8B639B',
+        danger: '#DC3545'
+      };
+      const iconMap = {
+        success: 'bi-check-circle-fill',
+        warning: 'bi-exclamation-circle-fill',
+        info: 'bi-info-circle-fill',
+        danger: 'bi-x-circle-fill'
+      };
+      const toastEl = document.createElement('div');
+      toastEl.className = 'p-3 mb-2 rounded-4 shadow-lg d-flex align-items-center gap-2';
+      toastEl.style.cssText = `
+        background: var(--surface-card);
+        color: var(--text-main);
+        border: 1.5px solid ${colorMap[type] || colorMap.info};
+        border-left: 5px solid ${colorMap[type] || colorMap.info};
+        animation: pageFadeIn 0.25s ease;
+      `;
+      toastEl.innerHTML = `
+        <i class="bi ${iconMap[type] || iconMap.info} fs-5 flex-shrink-0" style="color: ${colorMap[type] || colorMap.info};"></i>
+        <div class="small fw-semibold">${message}</div>
+      `;
+      container.appendChild(toastEl);
+      playUiTone(type === 'success' ? 660 : 440, 0.08);
+      setTimeout(() => {
+        toastEl.style.opacity = '0';
+        toastEl.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => toastEl.remove(), 260);
+      }, 3200);
+    }
+
+    /* =====================================================================
+       WEB AUDIO API BACKGROUND MUSIC & UI SOUND EFFECTS (NO EXTERNAL AUDIO)
+       ===================================================================== */
+    let audioCtx = null;
+    let musicInterval = null;
+
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    }
+
+    function playUiTone(freq = 520, duration = 0.07) {
+      if (!appState.musicOn) return;
+      const ctx = ensureAudioContext();
+      if (!ctx) return;
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0.03, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function startAmbientMusic() {
+      stopAmbientMusic();
+      const ctx = ensureAudioContext();
+      if (!ctx) return;
+
+      // Gentle pentatonic chord arpeggio in C major / A minor
+      const notes = [261.63, 329.63, 392.00, 440.00, 523.25, 392.00, 329.63, 293.66];
+      let step = 0;
+
+      const playSoftNote = () => {
+        if (!appState.musicOn || !audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(notes[step % notes.length], now);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(0.025, now + 0.18);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 1.5);
+        step++;
+      };
+
+      playSoftNote();
+      musicInterval = setInterval(playSoftNote, 1500);
+    }
+
+    function stopAmbientMusic() {
+      if (musicInterval) {
+        clearInterval(musicInterval);
+        musicInterval = null;
+      }
+    }
+
+    function toggleBackgroundMusic() {
+      appState.musicOn = !appState.musicOn;
+      if (appState.musicOn) {
+        ensureAudioContext();
+        startAmbientMusic();
+        showToast('Musik latar lembut diaktifkan (ON).', 'info');
+      } else {
+        stopAmbientMusic();
+        showToast('Musik latar dimatikan (OFF).', 'info');
+      }
+      updateMusicButtonUI();
+      saveState();
+    }
+
+    function updateMusicButtonUI() {
+      const icon = document.getElementById('musicIcon');
+      const label = document.getElementById('musicLabel');
+      if (appState.musicOn) {
+        icon.className = 'bi bi-volume-up-fill';
+        icon.style.color = '#FF5722';
+        label.textContent = 'Musik: ON';
+      } else {
+        icon.className = 'bi bi-volume-mute-fill';
+        icon.style.color = '';
+        label.textContent = 'Musik: OFF';
+      }
+    }
+
+    /* =====================================================================
+       THEME (LIGHT / DARK MODE)
+       ===================================================================== */
+    function applyTheme() {
+      document.documentElement.setAttribute('data-theme', appState.theme);
+      const icon = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (appState.theme === 'dark') {
+        icon.className = 'bi bi-sun-fill text-warning';
+        label.textContent = 'Mode Terang';
+      } else {
+        icon.className = 'bi bi-moon-stars-fill';
+        label.textContent = 'Mode Gelap';
+      }
+    }
+
+    function toggleTheme() {
+      appState.theme = appState.theme === 'light' ? 'dark' : 'light';
+      applyTheme();
+      saveState();
+      playUiTone(580, 0.06);
+    }
+
+    /* =====================================================================
+       NAVIGATION, PROGRESS (%) & BADGES
+       ===================================================================== */
+    function navigateTo(pageId) {
+      if (!PAGE_ORDER.includes(pageId)) pageId = 'home';
+      appState.currentPage = pageId;
+      if (!appState.visitedPages.includes(pageId)) {
+        appState.visitedPages.push(pageId);
+      }
+
+      document.querySelectorAll('.page-section').forEach(sec => {
+        sec.classList.remove('active');
+      });
+      const targetEl = document.getElementById(`page-${pageId}`);
+      if (targetEl) {
+        targetEl.classList.add('active');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      updateNavigationUI();
+      updateProgressAndBadges();
+      if (pageId === 'sertifikat') {
+        updateCertificatePreview();
+      }
+      saveState();
+      playUiTone(500, 0.05);
+    }
+
+    function stepPage(delta) {
+      const idx = PAGE_ORDER.indexOf(appState.currentPage);
+      const nextIdx = Math.max(0, Math.min(PAGE_ORDER.length - 1, idx + delta));
+      navigateTo(PAGE_ORDER[nextIdx]);
+    }
+
+    function updateNavigationUI() {
+      const idx = PAGE_ORDER.indexOf(appState.currentPage);
+      document.getElementById('progressStepLabel').textContent = `Halaman: ${PAGE_TITLES[appState.currentPage]}`;
+      document.getElementById('pageIndicatorPill').textContent = `${idx + 1} / ${PAGE_ORDER.length}`;
+      document.getElementById('btnPrevPage').disabled = idx === 0;
+      document.getElementById('btnNextPage').disabled = idx === PAGE_ORDER.length - 1;
+    }
+
+    function unlockBadge(badgeId) {
+      if (!appState.badges.includes(badgeId)) {
+        appState.badges.push(badgeId);
+        const meta = BADGES_META.find(b => b.id === badgeId);
+        if (meta) {
+          showToast(`Badge baru terbuka: "${meta.title}"!`, 'success');
+        }
+      }
+    }
+
+    function updateProgressAndBadges() {
+      // Check automatic badge conditions
+      if (appState.apersepsiCompleted) {
+        unlockBadge('explorer');
+      }
+      const completedCasesCount = Object.values(appState.caseCompleted).filter(Boolean).length;
+      if (completedCasesCount >= 1) {
+        unlockBadge('cleaner_1');
+      }
+      if (completedCasesCount >= 3) {
+        unlockBadge('cleaner_master');
+      }
+      if (appState.quizSubmitted && (appState.quizScore || 0) >= 80) {
+        unlockBadge('quiz_pro');
+      }
+      if (appState.reflectionSaved) {
+        unlockBadge('reflector');
+      }
+
+      // Compute learning progress percentage (0 - 100%)
+      let scorePoints = 0;
+      if (appState.visitedPages.includes('apersepsi')) scorePoints += 10;
+      if (appState.apersepsiCompleted) scorePoints += 10;
+      scorePoints += completedCasesCount * 10; // up to 30%
+      if (appState.quizSubmitted) scorePoints += 25;
+      if (appState.reflectionSaved) scorePoints += 15;
+      if (appState.visitedPages.includes('sertifikat')) scorePoints += 10;
+
+      const pct = Math.min(100, scorePoints);
+      document.getElementById('progressPercentText').textContent = `${pct}%`;
+      document.getElementById('progressBarFill').style.width = `${pct}%`;
+      document.getElementById('progressBarFill').setAttribute('aria-valuenow', pct);
+
+      // Update menu status badges
+      const stAper = document.getElementById('status-apersepsi');
+      if (appState.apersepsiCompleted) {
+        stAper.textContent = 'Selesai';
+        stAper.style.background = 'var(--accent-green-soft)';
+        stAper.style.color = 'var(--accent-green)';
+      } else if (appState.visitedPages.includes('apersepsi')) {
+        stAper.textContent = 'Dikunjungi';
+      }
+
+      const stKasus = document.getElementById('status-kasus');
+      stKasus.textContent = `${completedCasesCount}/3 Kasus Selesai`;
+      if (completedCasesCount > 0) {
+        stKasus.style.background = 'var(--accent-purple-soft)';
+        stKasus.style.color = 'var(--accent-purple)';
+      }
+
+      const stAsesmen = document.getElementById('status-asesmen');
+      if (appState.quizSubmitted) {
+        stAsesmen.textContent = `Nilai: ${appState.quizScore}`;
+        stAsesmen.style.background = 'var(--accent-green-soft)';
+        stAsesmen.style.color = 'var(--accent-green)';
+      }
+
+      const stRef = document.getElementById('status-refleksi');
+      if (appState.reflectionSaved) {
+        stRef.textContent = 'Tersimpan';
+        stRef.style.background = 'rgba(33, 150, 243, 0.15)';
+        stRef.style.color = '#2196F3';
+      }
+
+      // Home summary numbers
+      const totalCaseScore = (appState.caseScores[0] || 0) + (appState.caseScores[1] || 0) + (appState.caseScores[2] || 0);
+      document.getElementById('homeCaseScore').textContent = totalCaseScore;
+      document.getElementById('totalCaseScoreDisplay').textContent = totalCaseScore;
+      document.getElementById('homeQuizScore').textContent = appState.quizSubmitted ? `${appState.quizScore}` : 'Belum';
+
+      // Render Badges Grid
+      const grid = document.getElementById('badgesGrid');
+      grid.innerHTML = BADGES_META.map(b => {
+        const unlocked = appState.badges.includes(b.id);
+        return `
+          <div class="col-12 col-sm-6 col-lg-4">
+            <div class="badge-item ${unlocked ? 'unlocked' : 'locked'} d-flex align-items-center gap-3 h-100">
+              <div class="badge-icon-box" style="background: ${unlocked ? b.color : 'var(--border-soft)'}; color: ${unlocked ? '#fff' : 'var(--text-muted)'};">
+                <i class="bi ${unlocked ? b.icon : 'bi-lock-fill'}"></i>
+              </div>
+              <div>
+                <div class="fw-bold small d-flex align-items-center gap-1">
+                  <span>${b.title}</span>
+                  ${unlocked ? '<i class="bi bi-check-circle-fill text-success"></i>' : ''}
+                </div>
+                <div class="small" style="color: var(--text-muted); font-size: 0.78rem;">${b.desc}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('badgeCountPill').textContent = `${appState.badges.length} / ${BADGES_META.length} Badge Terbuka`;
+    }
+
+    /* =====================================================================
+       STUDENT IDENTITY SYNC (HOME & CERTIFICATE)
+       ===================================================================== */
+    function syncStudentIdentity(nameVal, classVal) {
+      if (typeof nameVal === 'string') {
+        appState.studentName = nameVal;
+      }
+      if (typeof classVal === 'string') {
+        appState.studentClass = classVal;
+      }
+
+      const homeName = document.getElementById('homeStudentName');
+      const homeClass = document.getElementById('homeStudentClass');
+      const certName = document.getElementById('certInputName');
+      const certClass = document.getElementById('certInputClass');
+
+      if (homeName && homeName.value !== appState.studentName) homeName.value = appState.studentName;
+      if (certName && certName.value !== appState.studentName) certName.value = appState.studentName;
+      if (homeClass && homeClass.value !== appState.studentClass) homeClass.value = appState.studentClass;
+      if (certClass && certClass.value !== appState.studentClass) certClass.value = appState.studentClass;
+
+      updateCertificatePreview();
+      saveState();
+    }
+
+    /* =====================================================================
+       1. APERSEPSI LOGIC
+       ===================================================================== */
+    function showHotspotNote(text) {
+      document.getElementById('hotspotNoteText').textContent = text;
+      playUiTone(620, 0.06);
+    }
+
+    function extractYouTubeId(url) {
+      if (!url) return null;
+      const regExp = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/;
+      const match = url.trim().match(regExp);
+      return match ? match[1] : null;
+    }
+
+    function updateApersepsiVideo() {
+      const input = document.getElementById('youtubeUrlInput');
+      const iframe = document.getElementById('apersepsiIframe');
+      const rawUrl = input.value.trim();
+      const videoId = extractYouTubeId(rawUrl);
+
+      if (videoId) {
+        iframe.src = `https://www.youtube.com/embed/${videoId}`;
+        appState.youtubeUrl = rawUrl;
+        saveState();
+        showToast('Video YouTube pemantik berhasil diperbarui!', 'success');
+      } else if (rawUrl.startsWith('https://www.youtube.com/embed/')) {
+        iframe.src = rawUrl;
+        appState.youtubeUrl = rawUrl;
+        saveState();
+        showToast('Embed video pemantik diterapkan.', 'success');
+      } else {
+        showToast('Masukkan tautan YouTube yang valid (contoh: https://www.youtube.com/watch?v=...).', 'warning');
+      }
+    }
+
+    function saveApersepsiNote(val) {
+      appState.apersepsiNote = val;
+      if (val.trim().length > 8) {
+        appState.apersepsiCompleted = true;
+        updateProgressAndBadges();
+      }
+      saveState();
+    }
+
+    function completeApersepsiStep() {
+      appState.apersepsiCompleted = true;
+      updateProgressAndBadges();
+      saveState();
+      navigateTo('kasus');
+    }
+
+    /* =====================================================================
+       2. STUDI KASUS KONTEKSTUAL (6 ACTIONS, FEEDBACK, SCORE, EXCEL EXPORT)
+       ===================================================================== */
+    function selectCaseStudy(caseId) {
+      appState.activeCaseId = caseId;
+      document.getElementById('caseHintBox').classList.add('d-none');
+      renderActiveCase();
+      saveState();
+      playUiTone(540, 0.06);
+    }
+
+    function renderActiveCase() {
+      const cId = appState.activeCaseId;
+      const caseObj = appState.cases[cId];
+
+      // Update case selector cards highlight
+      [0, 1, 2].forEach(idx => {
+        const tab = document.getElementById(`caseTab-${idx}`);
+        const badge = document.getElementById(`caseDoneBadge-${idx}`);
+        if (idx === cId) {
+          tab.style.borderColor = 'var(--accent-orange)';
+          tab.style.boxShadow = 'var(--shadow-hover)';
+        } else {
+          tab.style.borderColor = 'var(--border-soft)';
+          tab.style.boxShadow = 'var(--shadow-card)';
+        }
+        if (appState.caseCompleted[idx]) {
+          badge.textContent = `Selesai (${appState.caseScores[idx]})`;
+          badge.style.background = 'var(--accent-green-soft)';
+          badge.style.color = 'var(--accent-green)';
+        } else {
+          badge.textContent = `Skor: ${appState.caseScores[idx] || 0}`;
+          badge.style.background = 'var(--surface-elevated)';
+          badge.style.color = 'var(--text-muted)';
+        }
+      });
+
+      document.getElementById('activeCaseTitle').textContent = caseObj.title;
+      document.getElementById('activeCaseContext').textContent = caseObj.context;
+      document.getElementById('caseHintText').textContent = caseObj.hint;
+      document.getElementById('activeCaseScore').textContent = `${appState.caseScores[cId] || 0} / 100`;
+
+      const verifiedCount = caseObj.rows.filter(r => r.verified).length;
+      document.getElementById('activeCaseValidCount').textContent = `${verifiedCount} / ${caseObj.rows.length}`;
+
+      // Render Table Header
+      const thead = document.getElementById('cleaningTableHead');
+      thead.innerHTML = `
+        <tr>
+          <th>#</th>
+          <th>${caseObj.columns[0]}</th>
+          <th>${caseObj.columns[1]}</th>
+          <th>${caseObj.columns[2]}</th>
+          <th>${caseObj.columns[3]}</th>
+          <th>${caseObj.columns[4]}</th>
+          <th>${caseObj.columns[5]}</th>
+          <th>Aksi Olah Data</th>
+        </tr>
+      `;
+
+      // Render Table Rows
+      const tbody = document.getElementById('cleaningTableBody');
+      if (caseObj.rows.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center py-4" style="color: var(--text-muted);">
+              Semua baris telah dihapus. Klik <strong>Reset Percobaan Kasus</strong> untuk memuat ulang data awal.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = caseObj.rows.map((row, rIdx) => {
+        const rowClass = row.verified ? 'row-verified' : (row.issue !== 'none' ? 'row-flagged' : '');
+        return `
+          <tr class="${rowClass}">
+            <td class="fw-bold">${rIdx + 1}</td>
+            <td>
+              <input type="text" class="form-control form-control-sm" value="${escapeHtml(row.c1)}" onchange="updateCellValue(${cId}, ${row.id}, 'c1', this.value)" />
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-sm" value="${escapeHtml(row.c2)}" onchange="updateCellValue(${cId}, ${row.id}, 'c2', this.value)" />
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-sm" value="${escapeHtml(row.c3)}" onchange="updateCellValue(${cId}, ${row.id}, 'c3', this.value)" />
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-sm" value="${escapeHtml(row.c4)}" onchange="updateCellValue(${cId}, ${row.id}, 'c4', this.value)" />
+            </td>
+            <td>
+              <select class="form-select form-select-sm" onchange="updateIssueTag(${cId}, ${row.id}, this.value)">
+                <option value="none" ${row.issue === 'none' ? 'selected' : ''}>- Tidak Ada -</option>
+                <option value="duplicate" ${row.issue === 'duplicate' ? 'selected' : ''}>Duplikat</option>
+                <option value="typo" ${row.issue === 'typo' ? 'selected' : ''}>Typo / Inkonsisten</option>
+                <option value="outlier" ${row.issue === 'outlier' ? 'selected' : ''}>Data Tidak Wajar</option>
+                <option value="format" ${row.issue === 'format' ? 'selected' : ''}>Format / Normalisasi</option>
+              </select>
+            </td>
+            <td>
+              ${row.verified
+                ? '<span class="pill-green"><i class="bi bi-patch-check-fill"></i> Tervalidasi</span>'
+                : (row.merged
+                  ? '<span class="pill-purple"><i class="bi bi-intersect"></i> Tergabung</span>'
+                  : '<span class="badge rounded-pill" style="background: var(--surface-elevated); color: var(--text-muted); border: 1px solid var(--border-soft);">Belum Valid</span>')
+              }
+            </td>
+            <td>
+              <div class="d-flex flex-wrap gap-1">
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-3 px-2 py-1" onclick="normalizeRowData(${cId}, ${row.id})" title="Normalisasi penulisan & format">
+                  <i class="bi bi-magic"></i> Norm.
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-info rounded-3 px-2 py-1" onclick="mergeDuplicateRow(${cId}, ${row.id})" title="Gabungkan baris duplikat serupa">
+                  <i class="bi bi-union"></i> Gabung
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-success rounded-3 px-2 py-1" onclick="toggleVerifyRow(${cId}, ${row.id})" title="Validasi & Verifikasi baris">
+                  <i class="bi bi-check-lg"></i> Verif
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1" onclick="deleteRowData(${cId}, ${row.id})" title="Hapus baris ganda/tidak valid">
+                  <i class="bi bi-trash3"></i> Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function updateCellValue(caseId, rowId, field, value) {
+      const caseObj = appState.cases[caseId];
+      const row = caseObj.rows.find(r => r.id === rowId);
+      if (!row) return;
+      row[field] = value;
+      row.verified = false;
+      saveState();
+      renderActiveCase();
+      setFeedback(`Nilai kolom diperbarui pada baris #${rowId}. Jangan lupa klik <strong>Verif</strong> setelah dipastikan valid.`);
+    }
+
+    function updateIssueTag(caseId, rowId, issueVal) {
+      const caseObj = appState.cases[caseId];
+      const row = caseObj.rows.find(r => r.id === rowId);
+      if (!row) return;
+      row.issue = issueVal;
+      saveState();
+      renderActiveCase();
+      const labelMap = {
+        none: 'tidak ditandai isu khusus',
+        duplicate: 'Duplikat',
+        typo: 'Typo / Inkonsistensi',
+        outlier: 'Data Tidak Wajar',
+        format: 'Format / Normalisasi'
+      };
+      setFeedback(`Identifikasi isu diperbarui menjadi <strong>${labelMap[issueVal]}</strong>.`);
+    }
+
+    function toTitleCase(str) {
+      return str
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toLowerCase()
+        .replace(/\b\w/g, ch => ch.toUpperCase());
+    }
+
+    function normalizeRowData(caseId, rowId) {
+      const caseObj = appState.cases[caseId];
+      const row = caseObj.rows.find(r => r.id === rowId);
+      if (!row) return;
+
+      // Normalize text fields cleanly depending on case context
+      row.c1 = toTitleCase(row.c1);
+      if (caseId === 0) {
+        // Normalize Kelas format to X-1 / X-2
+        const digits = row.c2.replace(/\D/g, '');
+        if (digits.startsWith('10') && digits.length >= 3) {
+          row.c2 = `X-${digits.slice(2, 3)}`;
+        } else {
+          row.c2 = row.c2.trim().toUpperCase().replace(/\s+/g, '').replace('.', '-').replace(/^X(\d)$/, 'X-$1');
+        }
+        // Normalize impossible age
+        const ageNum = parseFloat(row.c3);
+        if (isNaN(ageNum) || ageNum < 13 || ageNum > 20) {
+          row.c3 = '16';
+        }
+        // Normalize date format to YYYY-MM-DD
+        row.c4 = normalizeDateString(row.c4, '2026-11-10');
+      } else if (caseId === 1) {
+        row.c2 = toTitleCase(row.c2);
+        const priceNum = parseFloat(String(row.c3).replace(/[^\d.-]/g, ''));
+        if (isNaN(priceNum) || priceNum < 0 || priceNum > 250000) {
+          row.c3 = '10000';
+        } else {
+          row.c3 = String(Math.round(priceNum));
+        }
+        row.c4 = normalizeDateString(row.c4, '2026-11-15');
+      } else if (caseId === 2) {
+        const bNum = parseFloat(row.c2);
+        if (isNaN(bNum) || bNum < 0 || bNum > 18) row.c2 = '2.5';
+        const gNum = parseFloat(row.c3);
+        if (isNaN(gNum) || gNum < 0 || gNum > 18) row.c3 = '4';
+        row.c4 = toTitleCase(row.c4);
+      }
+
+      row.issue = 'none';
+      row.verified = false;
+      saveState();
+      renderActiveCase();
+      setFeedback(`Data pada baris #${rowId} berhasil <strong>dinormalisasi</strong> (ejaan, angka, &amp; format dirapikan). Silakan klik <strong>Verif</strong> untuk mengesahkan.`);
+    }
+
+    function normalizeDateString(rawDate, fallback) {
+      const s = String(rawDate || '').trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      const parts = s.split(/[\/\-]/);
+      if (parts.length === 3) {
+        const d = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const y = parseInt(parts[2], 10);
+        if (d >= 1 && d <= 31 && m >= 1 && m <= 12 && y >= 2020 && y <= 2030) {
+          return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        }
+      }
+      return fallback;
+    }
+
+    function mergeDuplicateRow(caseId, rowId) {
+      const caseObj = appState.cases[caseId];
+      const idx = caseObj.rows.findIndex(r => r.id === rowId);
+      if (idx === -1) return;
+      const targetRow = caseObj.rows[idx];
+      const normName = targetRow.c1.trim().toLowerCase();
+
+      const otherIdx = caseObj.rows.findIndex((r, i) => i !== idx && r.c1.trim().toLowerCase() === normName);
+      if (otherIdx !== -1) {
+        const primary = caseObj.rows[otherIdx];
+        primary.c1 = toTitleCase(primary.c1);
+        primary.merged = true;
+        primary.issue = 'none';
+        caseObj.rows.splice(idx, 1);
+        saveState();
+        renderActiveCase();
+        setFeedback(`Baris ganda untuk <strong>${escapeHtml(primary.c1)}</strong> berhasil <strong>digabungkan</strong> menjadi satu entri bersih.`);
+      } else {
+        targetRow.merged = true;
+        targetRow.issue = 'none';
+        saveState();
+        renderActiveCase();
+        setFeedback(`Entri <strong>${escapeHtml(targetRow.c1)}</strong> ditandai telah direkonsiliasi/digabung.`);
+      }
+    }
+
+    function toggleVerifyRow(caseId, rowId) {
+      const caseObj = appState.cases[caseId];
+      const row = caseObj.rows.find(r => r.id === rowId);
+      if (!row) return;
+      row.verified = !row.verified;
+      saveState();
+      renderActiveCase();
+      setFeedback(
+        row.verified
+          ? `Baris <strong>${escapeHtml(row.c1)}</strong> telah <strong>diverifikasi</strong>.`
+          : `Status verifikasi baris <strong>${escapeHtml(row.c1)}</strong> dibatalkan.`
+      );
+    }
+
+    function deleteRowData(caseId, rowId) {
+      const caseObj = appState.cases[caseId];
+      const idx = caseObj.rows.findIndex(r => r.id === rowId);
+      if (idx === -1) return;
+      const removed = caseObj.rows[idx];
+      caseObj.rows.splice(idx, 1);
+      saveState();
+      renderActiveCase();
+      setFeedback(`Baris data <strong>${escapeHtml(removed.c1)}</strong> telah <strong>dihapus</strong> dari tabel.`);
+    }
+
+    function setFeedback(htmlMsg) {
+      document.getElementById('caseFeedbackText').innerHTML = htmlMsg;
+    }
+
+    function toggleHintBox() {
+      document.getElementById('caseHintBox').classList.toggle('d-none');
+    }
+
+    function evaluateCurrentCase() {
+      const cId = appState.activeCaseId;
+      const caseObj = appState.cases[cId];
+      const rows = caseObj.rows;
+
+      let points = 0;
+      const notes = [];
+
+      // 1. Check duplicates removed/merged (30 pts)
+      const nameCounts = {};
+      rows.forEach(r => {
+        const key = r.c1.trim().toLowerCase();
+        nameCounts[key] = (nameCounts[key] || 0) + 1;
+      });
+      const hasDupName = Object.values(nameCounts).some(cnt => cnt > 1);
+      if (!hasDupName && rows.length > 0) {
+        points += 30;
+        notes.push('Tidak ada lagi nama duplikat yang tertinggal (+30).');
+      } else {
+        notes.push('Masih ada nama/entri yang tampak ganda — hapus atau gabungkan duplikatnya.');
+      }
+
+      // 2. Check domain validity / no extreme outliers (35 pts)
+      let allDomainOk = rows.length > 0;
+      rows.forEach(r => {
+        if (cId === 0) {
+          const age = parseFloat(r.c3);
+          if (isNaN(age) || age < 13 || age > 20) allDomainOk = false;
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(r.c4.trim())) allDomainOk = false;
+        } else if (cId === 1) {
+          const price = parseFloat(String(r.c3).replace(/[^\d.-]/g, ''));
+          if (isNaN(price) || price <= 0 || price > 250000) allDomainOk = false;
+        } else if (cId === 2) {
+          const b = parseFloat(r.c2);
+          const g = parseFloat(r.c3);
+          if (isNaN(b) || b < 0 || b > 18 || isNaN(g) || g < 0 || g > 18) allDomainOk = false;
+        }
+      });
+
+      if (allDomainOk) {
+        points += 35;
+        notes.push('Seluruh nilai angka & format berada dalam batas wajar/valid (+35).');
+      } else {
+        notes.push('Masih ada angka tidak wajar atau format tanggal yang belum dinormalisasi.');
+      }
+
+      // 3. Check row verification (35 pts)
+      const verifiedRatio = rows.length > 0 ? rows.filter(r => r.verified).length / rows.length : 0;
+      const verifPts = Math.round(verifiedRatio * 35);
+      points += verifPts;
+      if (verifiedRatio === 1 && rows.length > 0) {
+        notes.push('Semua baris telah diverifikasi (+35).');
+      } else {
+        notes.push(`Baru ${Math.round(verifiedRatio * 100)}% baris yang terverifikasi (${verifPts}/35). Klik tombol Verif pada baris bersih.`);
+      }
+
+      const finalScore = Math.min(100, points);
+      appState.caseScores[cId] = finalScore;
+      if (finalScore >= 70) {
+        appState.caseCompleted[cId] = true;
+      }
+
+      updateProgressAndBadges();
+      renderActiveCase();
+      saveState();
+
+      setFeedback(`<strong>Skor Kasus: ${finalScore}/100.</strong><br/>• ${notes.join('<br/>• ')}`);
+      showToast(`Evaluasi studi kasus selesai: Skor ${finalScore}/100`, finalScore >= 70 ? 'success' : 'warning');
+    }
+
+    function resetCurrentCase() {
+      const cId = appState.activeCaseId;
+      const freshCases = createInitialCases();
+      appState.cases[cId] = freshCases[cId];
+      appState.caseScores[cId] = 0;
+      appState.caseCompleted[cId] = false;
+      updateProgressAndBadges();
+      renderActiveCase();
+      saveState();
+      setFeedback('Data studi kasus telah direset ke kondisi awal. Silakan ulangi proses pembersihan data!');
+      showToast('Percobaan studi kasus direset.', 'info');
+    }
+
+    function exportCaseToExcel() {
+      const cId = appState.activeCaseId;
+      const caseObj = appState.cases[cId];
+      const student = appState.studentName || 'Peserta Didik';
+      const kelas = appState.studentClass || 'SMA Kelas X';
+
+      // Build clean HTML table compatible with Microsoft Excel (.xls)
+      let html = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:x="urn:schemas-microsoft-com:office:excel"
+              xmlns="http://www.w3.org/TR/REC-html40">
+        <head><meta charset="UTF-8"></head>
+        <body>
+          <h3>${escapeHtml(caseObj.title)}</h3>
+          <p>Nama: ${escapeHtml(student)} | Kelas: ${escapeHtml(kelas)} | Skor Kasus: ${appState.caseScores[cId] || 0}/100</p>
+          <table border="1" cellspacing="0" cellpadding="6">
+            <thead>
+              <tr style="background:#303841;color:#ffffff;">
+                <th>No</th>
+                <th>${escapeHtml(caseObj.columns[0])}</th>
+                <th>${escapeHtml(caseObj.columns[1])}</th>
+                <th>${escapeHtml(caseObj.columns[2])}</th>
+                <th>${escapeHtml(caseObj.columns[3])}</th>
+                <th>Status Validasi</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      caseObj.rows.forEach((r, idx) => {
+        html += `
+          <tr>
+            <td>${idx + 1}</td>
+            <td>${escapeHtml(r.c1)}</td>
+            <td>${escapeHtml(r.c2)}</td>
+            <td>${escapeHtml(r.c3)}</td>
+            <td>${escapeHtml(r.c4)}</td>
+            <td>${r.verified ? 'Tervalidasi' : 'Belum Tervalidasi'}</td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table></body></html>`;
+
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Hasil_Data_Cleaning_Studi_Kasus_${cId + 1}.xls`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('File Excel (.xls) hasil pembersihan data berhasil diunduh!', 'success');
+    }
+
+    /* =====================================================================
+       3. ASESMEN AKHIR (10 SOAL + TIMER + PREDIKAT + CONFETTI)
+       ===================================================================== */
+    let quizTimerInterval = null;
+
+    function renderQuizQuestions() {
+      const container = document.getElementById('quizQuestionsContainer');
+      container.innerHTML = QUIZ_QUESTIONS.map((item, qIdx) => {
+        const selectedOpt = appState.quizAnswers[qIdx];
+        const isCorrect = appState.quizSubmitted && selectedOpt === item.answer;
+        const isWrong = appState.quizSubmitted && selectedOpt !== undefined && selectedOpt !== item.answer;
+
+        return `
+          <div class="canva-card p-4">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <span class="pill-purple">Soal ${qIdx + 1} dari ${QUIZ_QUESTIONS.length}</span>
+              ${appState.quizSubmitted
+                ? (isCorrect
+                  ? '<span class="pill-green"><i class="bi bi-check-circle-fill"></i> Benar (+10)</span>'
+                  : '<span class="pill-orange"><i class="bi bi-x-circle-fill"></i> Kurang Tepat (0)</span>')
+                : ''
+              }
+            </div>
+            <h4 class="h6 fw-bold mb-3" style="line-height: 1.5;">${item.q}</h4>
+            <div class="d-flex flex-column gap-2">
+              ${item.options.map((optText, oIdx) => {
+                const checked = selectedOpt === oIdx ? 'checked' : '';
+                const disabled = appState.quizSubmitted ? 'disabled' : '';
+                let highlightStyle = 'background: var(--surface-elevated); border-color: var(--border-soft);';
+                if (appState.quizSubmitted && oIdx === item.answer) {
+                  highlightStyle = 'background: var(--accent-green-soft); border-color: var(--accent-green); font-weight: 600;';
+                } else if (appState.quizSubmitted && selectedOpt === oIdx && oIdx !== item.answer) {
+                  highlightStyle = 'background: var(--accent-orange-soft); border-color: var(--accent-orange);';
+                }
+                return `
+                  <label class="p-3 rounded-3 d-flex align-items-start gap-2" style="cursor: ${appState.quizSubmitted ? 'default' : 'pointer'}; border: 1.5px solid; ${highlightStyle}">
+                    <input class="form-check-input mt-1 flex-shrink-0" type="radio" name="q_${qIdx}" value="${oIdx}" ${checked} ${disabled} onchange="selectQuizAnswer(${qIdx}, ${oIdx})" />
+                    <span class="small">${String.fromCharCode(65 + oIdx)}. ${optText}</span>
+                  </label>
+                `;
+              }).join('')}
+            </div>
+            ${appState.quizSubmitted
+              ? `<div class="mt-3 p-3 rounded-3 small" style="background: var(--accent-purple-soft); border-left: 3px solid var(--accent-purple);">
+                   <strong>Pembahasan:</strong> ${item.explanation}
+                 </div>`
+              : ''
+            }
+          </div>
+        `;
+      }).join('');
+
+      updateQuizAnsweredCounter();
+      if (appState.quizSubmitted) {
+        renderQuizResultBanner();
+      }
+    }
+
+    function selectQuizAnswer(qIdx, optIdx) {
+      if (appState.quizSubmitted) return;
+      appState.quizAnswers[qIdx] = optIdx;
+      updateQuizAnsweredCounter();
+      saveState();
+      playUiTone(560, 0.04);
+    }
+
+    function updateQuizAnsweredCounter() {
+      const count = Object.keys(appState.quizAnswers).length;
+      document.getElementById('quizAnsweredCount').textContent = count;
+    }
+
+    function startQuizTimerLoop() {
+      if (quizTimerInterval) clearInterval(quizTimerInterval);
+      updateTimerDisplay();
+
+      quizTimerInterval = setInterval(() => {
+        if (appState.currentPage !== 'asesmen') return;
+        if (appState.quizSubmitted || appState.quizTimerPaused) return;
+
+        if (appState.quizSecondsLeft > 0) {
+          appState.quizSecondsLeft--;
+          updateTimerDisplay();
+          if (appState.quizSecondsLeft % 15 === 0) {
+            saveState();
+          }
+        } else {
+          submitQuiz(true);
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const sec = Math.max(0, appState.quizSecondsLeft);
+      const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+      const ss = String(sec % 60).padStart(2, '0');
+      document.getElementById('quizTimerDisplay').textContent = `${mm}:${ss}`;
+    }
+
+    function toggleQuizTimer() {
+      if (appState.quizSubmitted) return;
+      appState.quizTimerPaused = !appState.quizTimerPaused;
+      const icon = document.getElementById('timerPauseIcon');
+      icon.className = appState.quizTimerPaused ? 'bi bi-play-fill' : 'bi bi-pause-fill';
+      showToast(appState.quizTimerPaused ? 'Timer asesmen dijeda.' : 'Timer asesmen dilanjutkan.', 'info');
+      saveState();
+    }
+
+    function getPredicateInfo(score) {
+      if (score >= 90) return { label: 'Sangat Baik', bg: 'var(--accent-green-soft)', color: 'var(--accent-green)' };
+      if (score >= 80) return { label: 'Baik', bg: 'var(--accent-purple-soft)', color: 'var(--accent-purple)' };
+      if (score >= 70) return { label: 'Cukup', bg: 'rgba(33, 150, 243, 0.15)', color: '#2196F3' };
+      return { label: 'Perlu Bimbingan', bg: 'var(--accent-orange-soft)', color: 'var(--accent-orange)' };
+    }
+
+    function submitQuiz(autoByTimeout = false) {
+      let correct = 0;
+      QUIZ_QUESTIONS.forEach((item, idx) => {
+        if (appState.quizAnswers[idx] === item.answer) {
+          correct++;
+        }
+      });
+
+      const finalScore = Math.round((correct / QUIZ_QUESTIONS.length) * 100);
+      appState.quizScore = finalScore;
+      appState.quizSubmitted = true;
+      updateProgressAndBadges();
+      updateCertificatePreview();
+      saveState();
+      renderQuizQuestions();
+      renderQuizResultBanner();
+
+      if (finalScore >= 90) {
+        triggerConfettiCelebration();
+      }
+
+      showToast(
+        autoByTimeout
+          ? `Waktu habis! Nilai Asesmen Akhir kamu: ${finalScore}`
+          : `Asesmen dikumpulkan! Nilai Akhir kamu: ${finalScore}`,
+        finalScore >= 70 ? 'success' : 'warning'
+      );
+      window.scrollTo({ top: 140, behavior: 'smooth' });
+    }
+
+    function renderQuizResultBanner() {
+      const card = document.getElementById('quizResultCard');
+      card.classList.remove('d-none');
+      const score = appState.quizScore ?? 0;
+      const pred = getPredicateInfo(score);
+
+      document.getElementById('quizFinalScoreText').textContent = score;
+      const badge = document.getElementById('quizPredicateBadge');
+      badge.textContent = `Predikat: ${pred.label}`;
+      badge.style.background = pred.bg;
+      badge.style.color = pred.color;
+
+      document.getElementById('quizResultHeading').textContent =
+        score >= 90
+          ? 'Luar Biasa! Ketajaman Analisis Datamu Sangat Baik!'
+          : score >= 80
+            ? 'Hebat! Pemahaman Pembersihan Datamu Baik!'
+            : score >= 70
+              ? 'Bagus! Predikat Cukup — Yuk Pelajari Pembahasannya!'
+              : 'Tetap Semangat! Perlu Bimbingan & Latihan Lagi';
+
+      document.getElementById('quizResultMessage').textContent =
+        `Nilai akhir dan predikat (${pred.label}) sudah otomatis tersinkronisasi ke Sertifikat Hasil Belajar A5. ${score >= 90 ? 'Selamat atas perolehan nilai >= 90!' : 'Kamu dapat meninjau pembahasan tiap soal di bawah.'}`;
+    }
+
+    function retakeQuiz() {
+      appState.quizAnswers = {};
+      appState.quizSubmitted = false;
+      appState.quizScore = null;
+      appState.quizSecondsLeft = 15 * 60;
+      appState.quizTimerPaused = false;
+      document.getElementById('quizResultCard').classList.add('d-none');
+      updateTimerDisplay();
+      updateProgressAndBadges();
+      updateCertificatePreview();
+      saveState();
+      renderQuizQuestions();
+      showToast('Asesmen siap dikerjakan ulang.', 'info');
+    }
+
+    /* =====================================================================
+       CONFETTI EFFECT WHEN QUIZ SCORE >= 90
+       ===================================================================== */
+    function triggerConfettiCelebration() {
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      canvas.style.display = 'block';
+
+      const colors = ['#FF5722', '#8B639B', '#2E8B57', '#303841', '#FFC107', '#FF8A65'];
+      const particles = Array.from({ length: 140 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * -canvas.height,
+        w: 7 + Math.random() * 8,
+        h: 5 + Math.random() * 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vy: 2.5 + Math.random() * 4.5,
+        vx: (Math.random() - 0.5) * 3,
+        rot: Math.random() * Math.PI * 2,
+        vRot: (Math.random() - 0.5) * 0.2
+      }));
+
+      let frames = 0;
+      const maxFrames = 210;
+
+      function drawFrame() {
+        frames++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach(p => {
+          p.y += p.vy;
+          p.x += p.vx;
+          p.rot += p.vRot;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        });
+
+        if (frames < maxFrames) {
+          requestAnimationFrame(drawFrame);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          canvas.style.display = 'none';
+        }
+      }
+
+      requestAnimationFrame(drawFrame);
+    }
+
+    /* =====================================================================
+       4. REFLEKSI PEMBELAJARAN LOGIC
+       ===================================================================== */
+    function loadReflectionInputs() {
+      document.getElementById('refUnderstand').value = appState.reflection.understand || '';
+      document.getElementById('refInteresting').value = appState.reflection.interesting || '';
+      document.getElementById('refConfusing').value = appState.reflection.confusing || '';
+      document.getElementById('refPlan').value = appState.reflection.plan || '';
+    }
+
+    function saveReflectionData() {
+      appState.reflection = {
+        understand: document.getElementById('refUnderstand').value,
+        interesting: document.getElementById('refInteresting').value,
+        confusing: document.getElementById('refConfusing').value,
+        plan: document.getElementById('refPlan').value
+      };
+      const hasContent = Object.values(appState.reflection).some(v => v.trim().length > 0);
+      if (hasContent) {
+        appState.reflectionSaved = true;
+        updateProgressAndBadges();
+      }
+      document.getElementById('reflectionStatusLabel').innerHTML =
+        '<i class="bi bi-cloud-check-fill me-1"></i> Tersimpan otomatis di perangkat';
+      saveState();
+    }
+
+    function saveReflectionExplicitly() {
+      saveReflectionData();
+      showToast('Catatan refleksi berhasil disimpan!', 'success');
+    }
+
+    function buildReflectionPlainText() {
+      const r = appState.reflection;
+      const name = appState.studentName || 'Peserta Didik';
+      const kelas = appState.studentClass || 'SMA Kelas X';
+      return [
+        `REFLEKSI PEMBELAJARAN — PEMBERSIHAN DATA (DATA CLEANING)`,
+        `Nama: ${name} | Kelas: ${kelas}`,
+        `1. Saya sudah memahami: ${r.understand || '-'}`,
+        `2. Hal yang paling menarik adalah: ${r.interesting || '-'}`,
+        `3. Hal yang masih membingungkan adalah: ${r.confusing || '-'}`,
+        `4. Rencana saya setelah belajar materi ini adalah: ${r.plan || '-'}`
+      ].join('\n\n');
+    }
+
+    function copyReflectionToClipboard() {
+      saveReflectionData();
+      const text = buildReflectionPlainText();
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('Teks refleksi berhasil disalin ke clipboard!', 'success');
+      } catch (e) {
+        showToast('Tidak dapat menyalin otomatis pada browser ini.', 'warning');
+      }
+      document.body.removeChild(ta);
+    }
+
+    /* =====================================================================
+       5. SERTIFIKAT A5 PREVIEW, PDF EXPORT & PRINT
+       ===================================================================== */
+    function computeFinalScoreForCertificate() {
+      if (appState.quizSubmitted && typeof appState.quizScore === 'number') {
+        return appState.quizScore;
+      }
+      const s0 = appState.caseScores[0] || 0;
+      const s1 = appState.caseScores[1] || 0;
+      const s2 = appState.caseScores[2] || 0;
+      return Math.round((s0 + s1 + s2) / 3);
+    }
+
+    function updateCertificatePreview() {
+      const nameInput = document.getElementById('certInputName');
+      const classInput = document.getElementById('certInputClass');
+      const dateInput = document.getElementById('certInputDate');
+
+      if (nameInput && nameInput.value !== appState.studentName) {
+        nameInput.value = appState.studentName;
+      }
+      if (classInput && classInput.value !== appState.studentClass) {
+        classInput.value = appState.studentClass;
+      }
+      if (dateInput && !dateInput.value) {
+        dateInput.value = appState.certDate;
+      } else if (dateInput) {
+        appState.certDate = dateInput.value;
+      }
+
+      const displayName = (appState.studentName || '').trim() || 'Peserta Didik SMA Kelas X';
+      const displayClass = (appState.studentClass || '').trim() || 'Kelas X';
+      const score = computeFinalScoreForCertificate();
+      const pred = getPredicateInfo(score);
+      const displayDate = (appState.certDate || '').trim() || new Date().toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+      });
+
+      document.getElementById('certDisplayName').textContent = displayName;
+      document.getElementById('certDisplayClass').textContent = displayClass;
+      document.getElementById('certDisplayScore').textContent = score;
+      document.getElementById('certDisplayPredicate').textContent = pred.label;
+      document.getElementById('certDisplayDate').textContent = displayDate;
+    }
+
+    async function downloadCertificatePDF() {
+      updateCertificatePreview();
+      const element = document.getElementById('certificateA5Element');
+      const studentSlug = (appState.studentName || 'Peserta_Didik').trim().replace(/[^A-Za-z0-9_-]+/g, '_');
+
+      showToast('Menyiapkan file PDF Sertifikat ukuran A5...', 'info');
+
+      try {
+        if (typeof html2canvas === 'function' && window.jspdf && window.jspdf.jsPDF) {
+          const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#FFFDF9'
+          });
+          const imgData = canvas.toDataURL('image/png');
+          // A5 Landscape: 210mm x 148mm
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a5'
+          });
+          pdf.addImage(imgData, 'PNG', 0, 0, 210, 148);
+          pdf.save(`Sertifikat_A5_Data_Cleaning_${studentSlug}.pdf`);
+          showToast('Sertifikat PDF ukuran A5 berhasil diunduh!', 'success');
+        } else {
+          printCertificateA5();
+        }
+      } catch (err) {
+        console.error('PDF export error:', err);
+        showToast('Membuka dialog cetak A5 (Simpan sebagai PDF)...', 'warning');
+        printCertificateA5();
+      }
+    }
+
+    function printCertificateA5() {
+      updateCertificatePreview();
+      window.print();
+    }
+
+    /* =====================================================================
+       DOWNLOAD REKAP HASIL BELAJAR (CSV / EXCEL SUMMARY)
+       ===================================================================== */
+    function downloadLearningSummary() {
+      const name = (appState.studentName || 'Peserta Didik').replace(/"/g, '""');
+      const kelas = (appState.studentClass || 'SMA Kelas X').replace(/"/g, '""');
+      const finalScore = computeFinalScoreForCertificate();
+      const pred = getPredicateInfo(finalScore).label;
+      const pctText = document.getElementById('progressPercentText').textContent;
+
+      const rows = [
+        ['Lembaga', 'SMA KHALIFAH BOARDING SCHOOL'],
+        ['Mata Pelajaran', 'Informatika - Analisis Data (Pembersihan Data)'],
+        ['Guru Informatika', 'Muhammad Irpan, S.Kom'],
+        ['Nama Peserta Didik', name],
+        ['Kelas', kelas],
+        ['Progres Belajar', pctText],
+        ['Skor Studi Kasus 1', appState.caseScores[0] || 0],
+        ['Skor Studi Kasus 2', appState.caseScores[1] || 0],
+        ['Skor Studi Kasus 3', appState.caseScores[2] || 0],
+        ['Nilai Asesmen Akhir', appState.quizSubmitted ? appState.quizScore : 'Belum Dikerjakan'],
+        ['Nilai Sertifikat & Predikat', `${finalScore} (${pred})`],
+        ['Badge Terbuka', `${appState.badges.length} / ${BADGES_META.length}`],
+        ['Refleksi - Sudah Memahami', (appState.reflection.understand || '').replace(/\r?\n/g, ' ')],
+        ['Refleksi - Paling Menarik', (appState.reflection.interesting || '').replace(/\r?\n/g, ' ')],
+        ['Refleksi - Masih Membingungkan', (appState.reflection.confusing || '').replace(/\r?\n/g, ' ')],
+        ['Refleksi - Rencana Belajar', (appState.reflection.plan || '').replace(/\r?\n/g, ' ')]
+      ];
+
+      const csvContent = '\uFEFF' + rows
+        .map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(';'))
+        .join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Rekap_Hasil_Belajar_Data_Cleaning_${name.replace(/\s+/g, '_')}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Rekap hasil belajar berhasil diunduh!', 'success');
+    }
+
+    /* =====================================================================
+       RESET ALL PROGRESS
+       ===================================================================== */
+    function confirmResetAllProgress() {
+      const preservedName = appState.studentName;
+      const preservedClass = appState.studentClass;
+      const preservedTheme = appState.theme;
+      const preservedMusic = appState.musicOn;
+
+      stopAmbientMusic();
+      localStorage.removeItem(STORAGE_KEY);
+
+      appState = getDefaultState();
+      appState.studentName = preservedName;
+      appState.studentClass = preservedClass;
+      appState.theme = preservedTheme;
+      appState.musicOn = preservedMusic;
+
+      if (appState.musicOn) {
+        startAmbientMusic();
+      }
+
+      saveState();
+      const modalEl = document.getElementById('resetModal');
+      const modalInstance = bootstrap.Modal.getInstance(modalEl);
+      if (modalInstance) modalInstance.hide();
+
+      syncStudentIdentity(appState.studentName, appState.studentClass);
+      loadReflectionInputs();
+      document.getElementById('apersepsiIdeaInput').value = '';
+      document.getElementById('quizResultCard').classList.add('d-none');
+      renderActiveCase();
+      renderQuizQuestions();
+      updateProgressAndBadges();
+      navigateTo('home');
+      showToast('Semua progres belajar telah direset ulang.', 'info');
+    }
+
+    /* =====================================================================
+       INITIALIZATION ON LOAD
+       ===================================================================== */
+    document.addEventListener('DOMContentLoaded', () => {
+      applyTheme();
+      updateMusicButtonUI();
+      if (appState.musicOn) {
+        startAmbientMusic();
+      }
+
+      syncStudentIdentity(appState.studentName, appState.studentClass);
+
+      // Restore Apersepsi note & video URL
+      document.getElementById('apersepsiIdeaInput').value = appState.apersepsiNote || '';
+      if (appState.youtubeUrl) {
+        document.getElementById('youtubeUrlInput').value = appState.youtubeUrl;
+        const vid = extractYouTubeId(appState.youtubeUrl);
+        if (vid) {
+          document.getElementById('apersepsiIframe').src = `https://www.youtube.com/embed/${vid}`;
+        }
+      }
+
+      loadReflectionInputs();
+      renderActiveCase();
+      renderQuizQuestions();
+      updateProgressAndBadges();
+      startQuizTimerLoop();
+      navigateTo(appState.currentPage || 'home');
+    });
+  </script>
+</body>
+</html>
